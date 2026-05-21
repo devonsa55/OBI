@@ -3,7 +3,7 @@
   "name": "Ocean Beach, San Francisco",
   "level0": {
     "title": "Ocean Beach Ecosystem",
-    "plateImage": "/assets/plate-level0-map.png",
+    "plateImage": "assets/plate-level0-map.png",
     "description": "Where the Pacific meets the edge of the city. A highly dynamic environment shaped by winds, waves, sand migration, and human engineering.",
     "annotations": [
       {
@@ -142,7 +142,7 @@
       {
         "id": "sys-sand-dune",
         "title": "Sand & Dunes",
-        "bgImage": "/assets/dunes-mid.webp",
+        "bgImage": "assets/dunes-mid.webp",
         "description": "An active, shifting landscape of dunes, sandbars, and vegetation.",
         "targetZoomScale": 3,
         "coordinates": { "x": 65, "y": 50 },
@@ -150,7 +150,7 @@
           {
             "id": "spec-dune-veg",
             "title": "Dune Stabilization",
-            "bgImage": "/assets/dune-veg-close.webp",
+            "bgImage": "assets/dune-veg-close.webp",
             "targetZoomScale": 6,
             "coordinates": { "x": 70, "y": 45 },
             "drawerContent": {
@@ -198,7 +198,7 @@
       {
         "id": "sys-creatures",
         "title": "Aquatic Life",
-        "plateImage": "/assets/plate-level1-aquatic.png",
+        "plateImage": "assets/plate-level1-aquatic.png",
         "description": "The resilient species that call this harsh environment home.",
         "targetZoomScale": 3,
         "cameraTarget": { "x": 50, "y": 50, "z": 1.0 },
@@ -225,7 +225,7 @@
           {
             "id": "spec-bull-kelp",
             "title": "Bull Kelp Study",
-            "bgImage": "/assets/plate-level2-kelp.png",
+            "bgImage": "assets/plate-level2-kelp.png",
             "targetZoomScale": 6,
             "cameraTarget": { "x": 50, "y": 50, "z": 1.0 },
             "coordinates": { "x": 65, "y": 75 },
