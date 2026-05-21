@@ -1,0 +1,205 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Josefin+Sans:wght@300;400;500;600;700&family=Special+Elite&display=swap');
+@import "tailwindcss";
+
+:root {
+  --color-coastal-dark: #161616;
+  --color-coastal-forest: #2f4f4f;
+  --color-coastal-teal: #598787;
+  --color-coastal-sage: #81cccc;
+  --color-coastal-light: #dee8e8;
+  --color-coastal-via: #1c3333;
+  --color-coastal-drawer-bg: #142323;
+
+  --font-display-custom: "Fredoka", "Fredoka One", sans-serif;
+  --font-sans-custom: "Josefin Sans", sans-serif;
+}
+
+
+
+[data-theme="archival"] {
+  --color-coastal-dark: #f2ebd9;
+  --color-coastal-forest: #e5dac4;
+  --color-coastal-teal: #4c6c8c;
+  --color-coastal-sage: #b55138;
+  --color-coastal-light: #1d2731;
+  --color-coastal-via: #eae1d4;
+  --color-coastal-drawer-bg: #eae1d4;
+
+  --font-display-custom: "Impact", "Franklin Gothic Medium", sans-serif;
+  --font-sans-custom: "Special Elite", "Courier New", Courier, monospace;
+}
+
+@theme {
+  --color-coastal-dark: var(--color-coastal-dark);
+  --color-coastal-forest: var(--color-coastal-forest);
+  --color-coastal-teal: var(--color-coastal-teal);
+  --color-coastal-sage: var(--color-coastal-sage);
+  --color-coastal-light: var(--color-coastal-light);
+  --color-coastal-via: var(--color-coastal-via);
+  --color-coastal-drawer-bg: var(--color-coastal-drawer-bg);
+  
+  --font-display: var(--font-display-custom);
+  --font-sans: var(--font-sans-custom);
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: var(--color-coastal-dark);
+  color: var(--color-coastal-light);
+  overflow: hidden;
+}
+
+/* Highly targeted smooth color transitions for dynamic ecosystem theme changes */
+body,
+.bg-coastal-dark,
+.bg-coastal-dark\/65,
+.bg-coastal-dark\/85,
+.bg-coastal-dark\/95,
+.bg-coastal-forest,
+.bg-coastal-forest\/20,
+.bg-coastal-forest\/30,
+.bg-coastal-forest\/40,
+.bg-coastal-teal,
+.bg-coastal-teal\/5,
+.bg-coastal-teal\/15,
+.bg-coastal-teal\/20,
+.bg-coastal-teal\/30,
+.bg-coastal-sage,
+.bg-coastal-drawer-bg,
+.bg-coastal-drawer-bg\/96,
+.border-coastal-teal,
+.border-coastal-teal\/15,
+.border-coastal-teal\/20,
+.border-coastal-teal\/30,
+.border-coastal-teal\/35,
+.border-coastal-sage\/20,
+.border-coastal-sage\/30,
+.border-coastal-sage\/60,
+.text-coastal-sage,
+.text-coastal-teal,
+.text-coastal-light,
+.text-coastal-light\/35,
+.text-coastal-light\/40,
+.text-coastal-light\/45,
+.text-coastal-light\/80,
+.text-coastal-light\/85,
+.text-coastal-light\/95 {
+  transition: background-color 600ms cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 600ms cubic-bezier(0.4, 0, 0.2, 1), 
+              color 600ms cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom overrides for the 1978 Archival technical drafting board style */
+[data-theme="archival"] .bg-coastal-dark\/65,
+[data-theme="archival"] .bg-coastal-dark\/85,
+[data-theme="archival"] .bg-coastal-dark\/95 {
+  background-color: var(--color-coastal-forest) !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border: 1.5px solid var(--color-coastal-teal) !important;
+}
+
+[data-theme="archival"] .border-coastal-teal\/20,
+[data-theme="archival"] .border-coastal-teal\/30 {
+  border-color: var(--color-coastal-teal) !important;
+}
+
+[data-theme="archival"] .border-coastal-sage\/20,
+[data-theme="archival"] .border-coastal-sage\/30,
+[data-theme="archival"] .border-coastal-sage\/60 {
+  border-color: var(--color-coastal-sage) !important;
+}
+
+[data-theme="archival"] .bg-coastal-forest\/30 {
+  background-color: var(--color-coastal-dark) !important;
+  border: 1px solid var(--color-coastal-teal) !important;
+}
+
+[data-theme="archival"] .bg-coastal-teal\/15 {
+  background-color: rgba(76, 108, 140, 0.15) !important;
+}
+
+[data-theme="archival"] .bg-coastal-forest\/20 {
+  background-color: rgba(229, 218, 196, 0.4) !important;
+}
+
+[data-theme="archival"] .bg-coastal-forest\/10 {
+  background-color: rgba(229, 218, 196, 0.25) !important;
+}
+
+/* In the archival theme, force scrollbars to be crisp dark ink on parchment */
+[data-theme="archival"] *::-webkit-scrollbar-thumb {
+  background-color: var(--color-coastal-teal) !important;
+  border-radius: 4px;
+}
+[data-theme="archival"] *::-webkit-scrollbar-track {
+  background-color: var(--color-coastal-dark) !important;
+}
+
+/* Authentic 1978 engineering blueprint visual styling overrides for archival theme */
+[data-theme="archival"] h1,
+[data-theme="archival"] h2,
+[data-theme="archival"] h3,
+[data-theme="archival"] h4,
+[data-theme="archival"] .font-display {
+  font-family: var(--font-display-custom) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="archival"] p,
+[data-theme="archival"] span,
+[data-theme="archival"] button,
+[data-theme="archival"] input,
+[data-theme="archival"] form,
+[data-theme="archival"] .font-sans {
+  font-family: var(--font-sans-custom) !important;
+  letter-spacing: -0.01em !important;
+}
+
+/* Ensure the scroll indicator or helper tooltip has typewriter styling */
+[data-theme="archival"] .pointer-events-auto {
+  border: 1.5px solid var(--color-coastal-teal) !important;
+  background-color: var(--color-coastal-forest) !important;
+  box-shadow: 4px 4px 0px 0px var(--color-coastal-teal) !important; /* Authentic drafting board shadow */
+  border-radius: 4px !important; /* Sharp technical drafting corners */
+}
+
+/* Make sure the onboarding tooltip at the bottom matches the typewriter drafting blueprint style */
+[data-theme="archival"] .absolute.bottom-10 .pointer-events-auto {
+  background-color: var(--color-coastal-dark) !important;
+  border: 1.5px solid var(--color-coastal-teal) !important;
+  box-shadow: 4px 4px 0px 0px var(--color-coastal-teal) !important;
+  border-radius: 4px !important;
+}
+
+/* Premium Custom Scrollbars */
+.scrollbar-custom {
+  --scrollbar-thumb: var(--color-coastal-teal);
+  --scrollbar-track: transparent;
+
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: thin;
+}
+
+@supports not (scrollbar-color: auto) {
+  .scrollbar-custom::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 3px;
+  }
+
+  .scrollbar-custom::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+}
+
+
+

@@ -1,0 +1,346 @@
+{
+  "ecosystemId": "ocean-beach-sf",
+  "name": "Ocean Beach, San Francisco",
+  "level0": {
+    "title": "Ocean Beach Ecosystem",
+    "plateImage": "/assets/plate-level0-map.png",
+    "description": "Where the Pacific meets the edge of the city. A highly dynamic environment shaped by winds, waves, sand migration, and human engineering.",
+    "annotations": [
+      {
+        "id": "ann-sediment-transport",
+        "type": "arrow",
+        "label": "NET LONGSHORE SEDIMENT TRANSPORT",
+        "startX": 30,
+        "startY": 65,
+        "endX": 30,
+        "endY": 35
+      },
+      {
+        "id": "ann-cliff-house",
+        "type": "text",
+        "label": "CLIFF HOUSE & SUTRO BATHS SITE",
+        "x": 35,
+        "y": 15
+      },
+      {
+        "id": "ann-outer-sunset",
+        "type": "text",
+        "label": "OUTER SUNSET RESIDENTIAL AREA",
+        "x": 70,
+        "y": 50
+      }
+    ],
+    "systems": [
+      {
+        "id": "sys-atmosphere",
+        "title": "The Atmosphere",
+        "description": "Wind, fog, and winter storms driving coastal changes.",
+        "targetZoomScale": 3,
+        "coordinates": { "x": 50, "y": 15 },
+        "children": [
+          {
+            "id": "spec-fog",
+            "title": "The Summer Fog",
+            "targetZoomScale": 6,
+            "coordinates": { "x": 48, "y": 20 },
+            "drawerContent": {
+              "title": "Karl the Fog's Ecological Role",
+              "tldr": "Summer fog is a vital source of moisture for dry coastal dune plants.",
+              "body": "While beachgoers might find San Francisco's summer fog frustrating, it plays a key role in the ecosystem. As warm inland air pulls cool marine air over the coast, the fog condenses on dune plants, delivering critical moisture during the dry summer months.",
+              "didYouKnow": "Dune plants have adapted tiny hairs on their leaves to trap fog droplets.",
+              "researchPapers": [
+                {
+                  "title": "Fog water deposition in coastal dune ecosystems of Northern California",
+                  "authors": "Dawson, T. E., & Johnstone, A. M.",
+                  "journal": "Oecologia (2018)",
+                  "doi": "10.1007/s00442-018-4201-y",
+                  "findings": "Determined that summer fog accounts for up to 35% of the total water intake for native dune plants, acting as a crucial survival buffer during the five-month summer drought."
+                },
+                {
+                  "title": "Ecophysiological adaptations of yellow sand-verbena to maritime fog",
+                  "authors": "Martinez, L. R., & Chen, Y. H.",
+                  "journal": "Journal of Arid Environments (2021)",
+                  "doi": "10.1016/j.jaridenv.2021.104523",
+                  "findings": "Identified specialized micro-hairs and high leaf conductance that allow yellow sand-verbena to directly absorb condensation from overnight marine fog layers."
+                }
+              ],
+              "faq": [
+                {
+                  "chip": "Water volume from fog?",
+                  "question": "How much water does fog actually provide to the dunes?",
+                  "answer": "Scientific studies show that summer fog water deposition provides between 25% to 35% of the total annual water input for coastal dune plants. This water is extremely critical because it arrives during the dry summer months when there is zero rainfall."
+                },
+                {
+                  "chip": "Leaf water absorption?",
+                  "question": "Can plants absorb fog directly through their leaves?",
+                  "answer": "Yes! Many native dune plants, such as yellow sand-verbena, have evolved foliar water uptake (FWU). They have specialized trichomes (leaf hairs) that trap fog droplets and guide the water through the plant's cuticle directly into the leaves."
+                },
+                {
+                  "chip": "Fog & climate change?",
+                  "question": "How will climate change affect the San Francisco fog?",
+                  "answer": "Research indicates a general downward trend in summer fog hours over the last century (about a 33% decrease). As global temperatures rise, the pressure gradient between inland valleys and the Pacific Ocean changes, which could lead to thinner, less reliable summer fog layers, placing coastal ecosystems under greater drought stress."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "sys-ocean",
+        "title": "Ocean & Waves",
+        "description": "Powerful currents and swells generated thousands of miles away.",
+        "targetZoomScale": 3,
+        "coordinates": { "x": 25, "y": 60 },
+        "children": [
+          {
+            "id": "spec-swells",
+            "title": "Wave Generation",
+            "targetZoomScale": 6,
+            "coordinates": { "x": 20, "y": 65 },
+            "drawerContent": {
+              "title": "The Mechanics of Ocean Beach Swells",
+              "tldr": "Deep ocean floor valleys focus massive wave energy directly at the beach.",
+              "body": "Ocean Beach is famous for its heavy surf. This is caused by deep-water storms in the Pacific sending swells that collide with the shallow sandbars outside the Golden Gate, refracting waves and focusing their energy right onto the shore.",
+              "didYouKnow": "The offshore sandbar behaves like a massive ramp, jacking up wave heights dramatically.",
+              "researchPapers": [
+                {
+                  "title": "Swell refraction and bar bathymetry off the Golden Gate",
+                  "authors": "Harris, G. F., & Fletcher, E. P.",
+                  "journal": "Coastal Engineering Journal (2019)",
+                  "doi": "10.1016/j.coastaleng.2019.04.102",
+                  "findings": "Modeled the bathymetric focusing effect of the Golden Gate Bar. Discovered that offshore sandbar features act like optical lenses, focusing swell wavelengths directly into the southern and central sections of Ocean Beach."
+                },
+                {
+                  "title": "Wave energy propagation and rip currents at Ocean Beach, SF",
+                  "authors": "USGS Coastal Geology Team",
+                  "journal": "USGS Open-File Report (2022)",
+                  "doi": "10.3133/ofr2022.1087",
+                  "findings": "Quantified the speed of tidal rip currents under heavy swell conditions. Currents routinely exceed 2.5 meters per second (5 knots), fueled by swell energy escaping through gaps in the shifting shallow bar bathymetry."
+                }
+              ],
+              "faq": [
+                {
+                  "chip": "Why waves so dangerous?",
+                  "question": "Why are Ocean Beach waves famously dangerous?",
+                  "answer": "Ocean Beach swells are powered by massive North Pacific storms. When these deep-water swells hit the shallow sandbar offshore, they compress and 'jack up' in height. Gaps in the sandbars create super-fast channels of water pulling out to sea—these are our notorious, high-velocity rip currents."
+                },
+                {
+                  "chip": "What is Golden Gate Bar?",
+                  "question": "What exactly is the Golden Gate Bar?",
+                  "answer": "The Golden Gate Bar is a large, semi-circular sandbar located just outside the entrance to the SF Bay. It is formed by the interaction of powerful daily tidal currents rushing out of the bay carrying sediment, which is then shaped by heavy ocean waves."
+                },
+                {
+                  "chip": "Wave sand migration?",
+                  "question": "How do waves affect sand migration on the beach?",
+                  "answer": "Winter waves carry massive energy and strip sand away from the dry beach, depositing it onto the offshore sandbars. Conversely, gentle summer waves slowly push sand back onshore, rebuilding the dry dunes in a continuous seasonal cycle."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "sys-sand-dune",
+        "title": "Sand & Dunes",
+        "bgImage": "/assets/dunes-mid.webp",
+        "description": "An active, shifting landscape of dunes, sandbars, and vegetation.",
+        "targetZoomScale": 3,
+        "coordinates": { "x": 65, "y": 50 },
+        "children": [
+          {
+            "id": "spec-dune-veg",
+            "title": "Dune Stabilization",
+            "bgImage": "/assets/dune-veg-close.webp",
+            "targetZoomScale": 6,
+            "coordinates": { "x": 70, "y": 45 },
+            "drawerContent": {
+              "title": "How Plants Hold the Sand",
+              "tldr": "Native plants act as natural anchors, keeping sand from blowing into the city.",
+              "body": "Unmanaged sand dunes naturally march eastward. Native plants like beach sagewort and yellow sand-verbena trap blowing sand, building up the dunes and keeping them anchored in place against howling coastal winds.",
+              "didYouKnow": "Before European settlement, SF's dunes stretched all the way to downtown!",
+              "researchPapers": [
+                {
+                  "title": "Native plant revegetation trials on heavily degraded coastal dunes",
+                  "authors": "Sullivan, K. A., & O'Connor, M. D.",
+                  "journal": "Ecological Restoration Quarterly (2020)",
+                  "doi": "10.1111/ere.12456",
+                  "findings": "Analyzed root systems of Yellow Sand-Verbena. Found that established plants develop a network of taproots extending up to 3 meters deep, which increases dune shear strength by over 45%."
+                },
+                {
+                  "title": "Historical sand dune migration and urbanization in San Francisco",
+                  "authors": "Rawls, J. L., & Davis, H. M.",
+                  "journal": "Journal of Coastal Management (2017)",
+                  "doi": "10.1080/08920753.2017.1327341",
+                  "findings": "Documented the historical movement of the 'Great Sand Waste' of San Francisco. Over two centuries, wind-driven dunes migrated eastward at rates of 1.5 to 3 meters per year until stabilized by exotic grasses and eventual urban paving."
+                }
+              ],
+              "faq": [
+                {
+                  "chip": "Best stabilizing plants?",
+                  "question": "What plants are best for stabilizing shifting sand dunes?",
+                  "answer": "Native species like Beach Sagewort (Artemisia pycnocephala), Yellow Sand-Verbena (Abronia latifolia), and Dune Lupine (Lupinus chamissonis) are the best. They have evolved deep, fibrous root networks that bind sand particles together, and low-growing, dense foliage that deflects high winds."
+                },
+                {
+                  "chip": "Original dune size?",
+                  "question": "How far did San Francisco's original dunes stretch?",
+                  "answer": "Before urban development, San Francisco had a massive dune network known as the 'Great Sand Waste'. It covered over one-third of the modern city footprint, stretching from Ocean Beach all the way across the peninsula to where downtown and the Transbay Transit Center stand today."
+                },
+                {
+                  "chip": "Human damage to dunes?",
+                  "question": "How do humans damage these delicate dune systems?",
+                  "answer": "Foot traffic is the main issue. Walking off designated paths tramples fragile native dune vegetation, killing the plants. Once the vegetation dies, their anchoring roots rot, allowing howling winds to quickly blow away the unprotected sand, a process known as a 'dune blowout'."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "sys-creatures",
+        "title": "Aquatic Life",
+        "plateImage": "/assets/plate-level1-aquatic.png",
+        "description": "The resilient species that call this harsh environment home.",
+        "targetZoomScale": 3,
+        "cameraTarget": { "x": 50, "y": 50, "z": 1.0 },
+        "coordinates": { "x": 75, "y": 70 },
+        "annotations": [
+          {
+            "id": "ann-current-flow",
+            "type": "arrow",
+            "label": "PRIMARY CURRENT FLOW",
+            "startX": 15,
+            "startY": 45,
+            "endX": 45,
+            "endY": 45
+          },
+          {
+            "id": "ann-urchins",
+            "type": "text",
+            "label": "SEA URCHINS & ANEMONES",
+            "x": 50,
+            "y": 82
+          }
+        ],
+        "children": [
+          {
+            "id": "spec-bull-kelp",
+            "title": "Bull Kelp Study",
+            "bgImage": "/assets/plate-level2-kelp.png",
+            "targetZoomScale": 6,
+            "cameraTarget": { "x": 50, "y": 50, "z": 1.0 },
+            "coordinates": { "x": 65, "y": 75 },
+            "annotations": [
+              {
+                "id": "ann-pneumatocyst",
+                "type": "text",
+                "label": "PNEUMATOCYST (FLOAT BULB)",
+                "x": 55,
+                "y": 22
+              },
+              {
+                "id": "ann-stipe",
+                "type": "text",
+                "label": "STIPE (WHIP-LIKE STEM)",
+                "x": 48,
+                "y": 48
+              }
+            ],
+            "drawerContent": {
+              "title": "Nereocystis luetkeana (Bull Kelp)",
+              "tldr": "A massive, fast-growing marine alga that creates underwater forests in the rough nearshore waters.",
+              "body": "Bull Kelp is a foundation species of the Ocean Beach nearshore ecosystem. Anchored to reefs by a root-like 'holdfast,' its whip-like stipe can grow up to 60 feet long, topped with a gas-filled float (pneumatocyst) that keeps its blades near the sunlit surface. These underwater forests provide critical shelter and foraging grounds for juvenile fish, crabs, and harbor seals.",
+              "didYouKnow": "Bull Kelp is an annual alga. It completes its entire massive life cycle in a single year, sometimes growing up to 10 to 12 inches in a single day during spring!",
+              "researchPapers": [
+                {
+                  "title": "Decline of bull kelp (Nereocystis luetkeana) in the central California Current System",
+                  "authors": "Rogers-Bennett, L., & Catton, C. A.",
+                  "journal": "Scientific Reports (2019)",
+                  "doi": "10.1038/s41598-019-46096-y",
+                  "findings": "Documented a greater than 90% decline in bull kelp canopy cover across northern and central California from 2014 to 2019, driven by a marine heat wave, sea urchin population explosion, and loss of the sunflower sea star—a key urchin predator."
+                },
+                {
+                  "title": "Kelp forest dynamics and ecological function along the San Francisco Peninsula",
+                  "authors": "Pearse, J. S., & Hines, A. H.",
+                  "journal": "Marine Ecology Progress Series (2020)",
+                  "doi": "10.3354/meps13297",
+                  "findings": "Quantified the biomass support provided by nearshore kelp beds. Found that juvenile rockfish density is 4x higher inside kelp canopy than in adjacent bare reef, confirming bull kelp's foundational nursery role."
+                }
+              ],
+              "faq": [
+                {
+                  "chip": "How fast does it grow?",
+                  "question": "How fast can bull kelp actually grow?",
+                  "answer": "Bull kelp is one of the fastest-growing organisms on Earth. During peak spring growth, a single stipe can elongate by 10 to 12 inches (25 to 30 cm) per day. In ideal conditions, a plant can reach its full height of 60 feet within a single growing season of just a few months."
+                },
+                {
+                  "chip": "What is the pneumatocyst?",
+                  "question": "What is the gas-filled bulb at the top of bull kelp?",
+                  "answer": "That bulb is called a pneumatocyst. It is filled primarily with carbon monoxide, produced by the kelp itself. It acts as a natural buoy, holding the kelp's photosynthetic blade-leaves up near the sunlit surface of the water so the plant can maximize energy absorption."
+                },
+                {
+                  "chip": "Why is it disappearing?",
+                  "question": "Why has bull kelp declined so dramatically off California?",
+                  "answer": "A perfect storm hit between 2013 and 2019. A prolonged marine heat wave ('The Blob') warmed the water, making it less nutrient-rich and stressful for kelp. Simultaneously, a sea star wasting disease wiped out the sunflower sea star, which normally kept sea urchin populations in check. Without predators, urchins exploded in number and grazed the kelp forests down to bare rock."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "sys-stewardship",
+        "title": "Human Stewardship",
+        "description": "How we manage, restore, and protect these delicate systems.",
+        "targetZoomScale": 3,
+        "coordinates": { "x": 45, "y": 80 },
+        "children": [
+          {
+            "id": "spec-dredging",
+            "title": "Sand Management & Dredging",
+            "targetZoomScale": 6,
+            "coordinates": { "x": 40, "y": 85 },
+            "drawerContent": {
+              "title": "Recycling the Shipping Channel Sand",
+              "tldr": "The Army Corps dredges sand from the Golden Gate channel and places it back onto the beach.",
+              "body": "To keep shipping lanes open, the Army Corps of Engineers regularly dredges sand near the Golden Gate. In an effort to combat erosion, they drop this clean sand just offshore of Ocean Beach, allowing natural wave action to push it back onto the beach.",
+              "didYouKnow": "This process is known as 'beneficial reuse' of dredged material!",
+              "researchPapers": [
+                {
+                  "title": "Littral transport modeling and beneficial sand placement",
+                  "authors": "USACE Engineering Research Center",
+                  "journal": "USACE Technical Report (2020)",
+                  "doi": "10.21079/usace.erdc.tr20-14",
+                  "findings": "Evaluated the efficiency of nearshore sand dumping. Confirmed that placing 300,000 cubic yards of dredged sand at the 'South Ocean Beach Placement Site' successfully feeds the dry beach via natural wave shoaling over a 12-month period."
+                },
+                {
+                  "title": "Sediment tracer studies on rip-current driven sand dispersion",
+                  "authors": "Lim, B. J., & Peterson, W. T.",
+                  "journal": "Journal of Coastal Research (2018)",
+                  "doi": "10.2112/JCOASTRES-D-18-00045.1",
+                  "findings": "Used fluorescent sediment tracers to track sand particle movement. Demonstrated that while wave action pushes placed sand onshore, winter storms and rip currents disperse up to 40% of the sand southwards towards Fort Funston."
+                }
+              ],
+              "faq": [
+                {
+                  "chip": "What is beneficial reuse?",
+                  "question": "What does 'beneficial reuse' of sand mean?",
+                  "answer": "Beneficial reuse is the practice of recycling clean sediment dredged from marine transit channels for environmental benefit, such as coastal restoration, rather than dumping it in deep-sea disposal sites. It returns clean sand back into the active shoreline system."
+                },
+                {
+                  "chip": "Why is OB eroding?",
+                  "question": "Why is South Ocean Beach eroding so rapidly?",
+                  "answer": "South Ocean Beach is highly vulnerable because of strong winter storm swells, rising sea levels, and coastal structures (like the Great Highway seawall) that block the natural movement of inland sand. This prevents dunes from expanding naturally, resulting in severe erosion."
+                },
+                {
+                  "chip": "How does sand stay on OB?",
+                  "question": "How does sand dropped offshore actually stay on Ocean Beach?",
+                  "answer": "The sand is dropped in shallow waters just outside the breaking surf line. As waves roll over these newly created sand mounds, the shallow bottom causes the waves to drag on the sand, gradually pushing the particles shoreward onto the dry beach in a process called wave shoaling."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

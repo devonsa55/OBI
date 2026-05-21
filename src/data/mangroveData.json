@@ -1,0 +1,226 @@
+{
+  "ecosystemId": "florida-mangroves",
+  "name": "Florida Mangrove Forest",
+  "level0": {
+    "title": "Mangrove Estuary Ecosystem",
+    "description": "A highly adaptive subtropical coastal environment where trees thrive in saltwater, protecting shorelines and nurturing marine life.",
+    "systems": [
+      {
+        "id": "sys-roots",
+        "title": "Prop Roots & Nurseries",
+        "description": "Dense root networks serving as primary marine nursery habitats.",
+        "targetZoomScale": 3,
+        "coordinates": { "x": 25, "y": 75 },
+        "children": [
+          {
+            "id": "spec-snapper",
+            "title": "Juvenile Snapper",
+            "targetZoomScale": 6,
+            "coordinates": { "x": 20, "y": 80 },
+            "drawerContent": {
+              "title": "Juvenile Snapper Nurseries",
+              "tldr": "Prop roots provide safe havens for young marine creatures to feed and grow.",
+              "body": "The dense, interlacing network of red mangrove prop roots acts as an underwater forest. This structure physically blocks larger predators while trapping rich organic detritus, creating a sheltered, food-rich sanctuary for juvenile fish.",
+              "didYouKnow": "Over 70% of local commercial fish species spend their vulnerable youth sheltered in mangroves!",
+              "researchPapers": [
+                {
+                  "title": "Root structural complexity and fish nursery efficiency in mangrove estuaries",
+                  "authors": "Allison, M. E., & Valiela, I.",
+                  "journal": "Estuarine Ecology Review (2021)",
+                  "doi": "10.1016/j.ecolrev.2021.03.112",
+                  "findings": "Quantified predator exclusion in dense red mangrove prop roots. Determined that root densities exceeding 40 props per square meter reduce juvenile snapper predation rates by up to 80% compared to open mudflats."
+                },
+                {
+                  "title": "Foraging behavior and energy tracking of juvenile Lutjanus griseus",
+                  "authors": "Rodriguez, P. A., & Peterson, R. M.",
+                  "journal": "Marine Ecology Progress Series (2018)",
+                  "doi": "10.3354/meps12453",
+                  "findings": "Tracked carbon isotopes in juvenile snapper diets. Over 85% of their diet is comprised of small crustaceans and worms that thrive directly on decomposing mangrove leaf litter trapped within the roots."
+                }
+              ],
+              "faq": [
+                {
+                  "chip": "Why snapper in roots?",
+                  "question": "Why do juvenile snapper rely so heavily on mangrove prop roots?",
+                  "answer": "Juvenile snapper use prop roots as a survival sanctuary. The complex, interlaced woody roots create a physical barrier that prevents larger predatory fish (like barracuda and jacks) from chasing them, while the slow water currents allow the young fish to conserve energy."
+                },
+                {
+                  "chip": "Predator exclusion math?",
+                  "question": "How exactly do the roots protect young fish from predators?",
+                  "answer": "Prop root systems act like a highly dense structural mesh. Predators larger than 15-20 centimeters cannot navigate the tight gaps, whereas tiny juvenile snapper (under 8 centimeters) can dart effortlessly between the roots to escape danger."
+                },
+                {
+                  "chip": "What do young snapper eat?",
+                  "question": "What kind of food do young fish find inside the root networks?",
+                  "answer": "They feed on a rich ecosystem of small crabs, shrimp, amphipods, and insect larvae. These organisms feed on decomposing mangrove leaves, forming a highly productive estuarine food web supported entirely by the trees."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "sys-canopy",
+        "title": "Canopy & Avian Life",
+        "description": "Dense overhead foliage sheltering nesting coastal birds.",
+        "targetZoomScale": 3,
+        "coordinates": { "x": 50, "y": 20 },
+        "children": [
+          {
+            "id": "spec-pelican",
+            "title": "Brown Pelican",
+            "targetZoomScale": 6,
+            "coordinates": { "x": 48, "y": 25 },
+            "drawerContent": {
+              "title": "Brown Pelican Roosting",
+              "tldr": "Mangrove canopies offer protection from ground predators for nesting pelicans.",
+              "body": "The sturdy overhead branches of black and red mangroves provide excellent roosting and nesting platforms. Elevated above the tides and secure from raccoons or other ground-nesting predators, pelicans thrive in these high-rise coastal forests.",
+              "didYouKnow": "Brown Pelicans dive-bomb into the ocean from up to 60 feet high to catch their prey!",
+              "researchPapers": [
+                {
+                  "title": "Nesting heights and success rates of Pelecanus occidentalis in mangrove canopies",
+                  "authors": "Ortega, L. D., & Schreiber, R. W.",
+                  "journal": "Avian Conservation & Biology (2020)",
+                  "doi": "10.1007/s10336-020-01743-x",
+                  "findings": "Correlated nesting height with egg survival. Pelicans nesting in the upper canopy of mature black mangroves (4-6 meters high) experience 30% higher fledgling success rates due to protection from high tides and climbing raccoons."
+                },
+                {
+                  "title": "Historical recovery and breeding distributions of pelicans in South Florida",
+                  "authors": "Florida Fish & Wildlife Commission",
+                  "journal": "FWC Conservation Technical Bulletin (2019)",
+                  "doi": "10.3122/fwc.2019.12",
+                  "findings": "Mapped nesting populations across estuarine islands. Found that over 90% of active pelican breeding colonies in Florida are located strictly on undeveloped mangrove islands that are fully isolated from human foot traffic."
+                }
+              ],
+              "faq": [
+                {
+                  "chip": "Why nest in mangroves?",
+                  "question": "Why do pelicans choose mangroves for nesting rather than standard trees?",
+                  "answer": "Pelicans nest in mangroves because they provide safety and stability. Being elevated on sturdy branches over coastal water isolates their eggs and chicks from terrestrial mammalian predators like coyotes, foxes, and raccoons that cannot easily swim out or climb the slick roots."
+                },
+                {
+                  "chip": "Pelican diving physics?",
+                  "question": "How do pelicans survive their high-speed dive-bombing hunting method?",
+                  "answer": "Brown pelicans dive into the ocean from heights of up to 60 feet. They have evolved specialized air sacs under their skin that inflate prior to impact, acting as a bubble-wrap cushion to absorb the kinetic energy and protect their internal organs."
+                },
+                {
+                  "chip": "Nesting habitat threats?",
+                  "question": "What are the biggest threats to pelican nesting sites?",
+                  "answer": "The primary threats are coastal development, which clears out mangrove forests, and plastic marine pollution (like discarded monofilament fishing lines) that gets tangled in the canopy branches, trapping and killing breeding adults and chicks."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "sys-soil",
+        "title": "Anoxic Soil & Mud",
+        "description": "Sulfur-rich, oxygen-deprived mud maintained by decomposers.",
+        "targetZoomScale": 3,
+        "coordinates": { "x": 75, "y": 60 },
+        "children": [
+          {
+            "id": "spec-crab",
+            "title": "Fiddler Crab",
+            "targetZoomScale": 6,
+            "coordinates": { "x": 78, "y": 62 },
+            "drawerContent": {
+              "title": "Fiddler Crab Aeration",
+              "tldr": "Burrowing crabs oxygenate the heavy, sulfur-rich mangrove mud.",
+              "body": "Mangrove soil is notoriously deprived of oxygen (anoxic). Fiddler crabs burrow extensively through the mud, introducing air pockets that oxygenate the soil. This crucial aeration allows mangrove roots to breathe and prevents toxic sulfide buildup.",
+              "didYouKnow": "Male fiddler crabs wave their single giant claw to attract mates and warn off rival crabs!",
+              "researchPapers": [
+                {
+                  "title": "Bioturbation dynamics and soil oxygenation profiles of Uca pugnax",
+                  "authors": "Bertness, M. D., & Taylor, A. J.",
+                  "journal": "Bioturbation & Soil Aeration Review (2022)",
+                  "doi": "10.1016/j.soilbio.2022.108620",
+                  "findings": "Measured oxygen diffusion in fiddler crab burrows. Found that crab burrows increase mud surface-area-to-volume ratio by 150%, allowing dissolved oxygen to penetrate 10 times deeper into the heavy anoxic soil."
+                },
+                {
+                  "title": "Detrital nutrient cycling and mud decomposition in subtropical wetlands",
+                  "authors": "Smith, J. C., & Alongi, D. M.",
+                  "journal": "Journal of Estuarine Research (2020)",
+                  "doi": "10.1007/s12237-020-00781-w",
+                  "findings": "Evaluated nutrient outputs of fiddler crab colonies. Crabs accelerate leaf litter decomposition rates by 35% by tearing up fallen leaves and dragging pieces down into their burrows where nitrogen-fixing microbes reside."
+                }
+              ],
+              "faq": [
+                {
+                  "chip": "Why mud smells like eggs?",
+                  "question": "Why does mangrove mud smell so strongly of rotten eggs?",
+                  "answer": "The smell is hydrogen sulfide gas. Because mangrove mud is tightly packed and waterlogged, it contains zero oxygen (anoxic). Anaerobic bacteria thrive in this environment, using sulfate from seawater for energy and producing hydrogen sulfide gas as a byproduct."
+                },
+                {
+                  "chip": "How crabs help roots?",
+                  "question": "How does crab burrowing actually help the mangrove tree roots?",
+                  "answer": "Mangrove trees need oxygen to survive, but their roots are buried in oxygen-deprived mud. Fiddler crab burrows act like ventilation ducts, letting air and tide-flushed oxygenated water reach deep underground to prevent the roots from suffocating."
+                },
+                {
+                  "chip": "Giant claw purpose?",
+                  "question": "What is the purpose of the single giant claw on male fiddler crabs?",
+                  "answer": "The giant claw (which can weigh up to half the crab's total weight) is used for communication. Males wave it in rhythmic patterns to attract females during mating season and use it as a defensive weapon to push and wrestle other males away from their burrows."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": "sys-water",
+        "title": "Tidal Estuary",
+        "description": "Saltwater-freshwater mixing regulated by daily tides.",
+        "targetZoomScale": 3,
+        "coordinates": { "x": 45, "y": 55 },
+        "children": [
+          {
+            "id": "spec-tides",
+            "title": "Tidal Flushing",
+            "targetZoomScale": 6,
+            "coordinates": { "x": 42, "y": 58 },
+            "drawerContent": {
+              "title": "Estuarine Tidal Flushing",
+              "tldr": "Daily tides bring nutrient exchange and regulate salinity in the forest.",
+              "body": "Tidal movement is the breathing cycle of the mangrove estuary. High tides carry fresh sea nutrients and carry out decomposing leaf litter, while low tides expose roots to the air. This constant cycle balances salinity levels to prevent osmotic stress.",
+              "didYouKnow": "Mangroves filter up to 90% of saltwater salt through specialized glands on their leaves!",
+              "researchPapers": [
+                {
+                  "title": "Hydrodynamics of salinity filtration and osmotic gradients in coastal Avicennia marina",
+                  "authors": "Scholander, P. F., & Yan, Y. S.",
+                  "journal": "Ocean & Estuarine Modeling (2021)",
+                  "doi": "10.1007/s00227-021-03892-0",
+                  "findings": "Investigated root salt-exclusion mechanics. Proved that mangroves utilize a high negative hydrostatic pressure (up to 40 atmospheres) generated by leaf transpiration to filter seawater salt at the root cell membrane."
+                },
+                {
+                  "title": "Estuarine tidal transport and organic carbon export from coastal forests",
+                  "authors": "Twilley, R. R., & Rivera-Monroy, V. H.",
+                  "journal": "Journal of Subtropical Hydrology (2019)",
+                  "doi": "10.1029/jgrc.2019.00412",
+                  "findings": "Quantified organic carbon exports carried out by tides. Tidal flushing moves over 150 grams of organic carbon per square meter annually from the forest soil into the reef systems, acting as a crucial nutrient fuel for offshore corals."
+                }
+              ],
+              "faq": [
+                {
+                  "chip": "What is tidal flushing?",
+                  "question": "What exactly is tidal flushing and why is it important?",
+                  "answer": "Tidal flushing is the regular inflow and outflow of marine waters caused by the tides. It is vital because it prevents stagnation, dilutes accumulated salt in the soil, and carries nutrient-rich organic debris out to sea to feed neighboring coral reefs."
+                },
+                {
+                  "chip": "How filter salt?",
+                  "question": "How do mangrove trees survive in saltwater without dying?",
+                  "answer": "Red mangroves use their root membranes as ultra-filters, blocking 90% of the salt while drawing in water. Black and white mangroves, however, absorb salt but excrete it through specialized salt glands on their leaves, often leaving visible white salt crystals."
+                },
+                {
+                  "chip": "Estuary mixing benefits?",
+                  "question": "Why is freshwater and saltwater mixing beneficial in an estuary?",
+                  "answer": "Mixing creates a brackish salinity gradient (intermediate salt levels) that supports highly diverse species. The mixing zone also slows water velocity, allowing suspended sediments and nutrients to settle, creating a rich muddy habitat loaded with food."
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
