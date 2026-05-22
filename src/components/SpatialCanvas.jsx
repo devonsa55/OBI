@@ -10,7 +10,7 @@ const transitionConfig = {
   mass: 0.9,
 };
 
-export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnotations, squeezeMitigation }) {
+export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnotations, squeezeMitigation, theme, canvasIntegration }) {
   const { camera, focusNode, isDevMode, logClickCoordinate, lastCoordinates } = useCamera();
   const viewportRef = useRef(null);
   const containerRef = useRef(null);
@@ -22,6 +22,7 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
   // Track active zoom direction (down vs up) for seamless 3D spatial alignment
   const prevLevelRef = useRef(camera.level);
   const [direction, setDirection] = useState('down');
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (camera.level > prevLevelRef.current) {
@@ -33,6 +34,54 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
   }, [camera.level]);
 
   useEffect(() => {
+    setPanOffset({ x: 0, y: 0 });
+  }, [canvasIntegration]);
+
+  const handleMouseMove = (e) => {
+    if (canvasIntegration !== "autofocus-pan" || !containerRef.current || camera.level > 0) {
+      if (panOffset.x !== 0 || panOffset.y !== 0) {
+        setPanOffset({ x: 0, y: 0 });
+      }
+      return;
+    }
+    
+    const rect = containerRef.current.getBoundingClientRect();
+    const x = (e.clientX - rect.left) / rect.width; // 0 to 1
+    const y = (e.clientY - rect.top) / rect.height; // 0 to 1
+    
+    // Autopanning threshold (outer 15%)
+    const threshold = 0.15;
+    let targetX = 0;
+    let targetY = 0;
+    
+    // Horizontal panning
+    if (x < threshold) {
+      const factor = (threshold - x) / threshold; // 0 to 1
+      targetX = factor * 15; // up to +15% translation offset
+    } else if (x > 1 - threshold) {
+      const factor = (x - (1 - threshold)) / threshold; // 0 to 1
+      targetX = -factor * 15; // up to -15% translation offset
+    }
+    
+    // Vertical panning
+    if (y < threshold) {
+      const factor = (threshold - y) / threshold; // 0 to 1
+      targetY = factor * 15; // up to +15% translation offset
+    } else if (y > 1 - threshold) {
+      const factor = (y - (1 - threshold)) / threshold; // 0 to 1
+      targetY = -factor * 15; // up to -15% translation offset
+    }
+    
+    setPanOffset({ x: targetX, y: targetY });
+  };
+
+  const handleMouseLeave = () => {
+    if (canvasIntegration === "autofocus-pan") {
+      setPanOffset({ x: 0, y: 0 });
+    }
+  };
+
+  useEffect(() => {
     if (!containerRef.current) return;
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -42,7 +91,7 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
         const targetRatio = 1024 / 571;
         let finalW, finalH;
 
-        if (squeezeMitigation === "focal-width") {
+        if (canvasIntegration === "autofocus-pan" || squeezeMitigation === "focal-width") {
           // True Cover-Fit: Scale canvas to completely cover the container, cropping overflow
           const containerRatio = width / height;
           if (containerRatio > targetRatio) {
@@ -73,7 +122,7 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
 
     resizeObserver.observe(containerRef.current);
     return () => resizeObserver.disconnect();
-  }, [squeezeMitigation]);
+  }, [squeezeMitigation, canvasIntegration]);
 
   // Resolve current active plate details
   let activeSystem = null;
@@ -163,7 +212,7 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
   };
 
   const handleMouseDown = (e) => {
-    if (squeezeMitigation !== 'focal-width') return;
+    if (canvasIntegration === 'autofocus-pan' || squeezeMitigation !== 'focal-width') return;
     if (e.target.closest('.pointer-events-auto') && !e.target.closest('.drag-trigger')) return;
     
     setIsDragging(true);
@@ -172,30 +221,66 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
       startY: e.clientY
     };
 
-    const handleMouseMove = (me) => {
+    const handleMouseMoveDrag = (me) => {
       const deltaY = me.clientY - dragStartRef.current.startY;
       containerRef.current.scrollTop = dragStartRef.current.scrollTop - deltaY;
     };
 
     const handleMouseUp = () => {
       setIsDragging(false);
-      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mousemove', handleMouseMoveDrag);
       window.removeEventListener('mouseup', handleMouseUp);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mousemove', handleMouseMoveDrag);
     window.addEventListener('mouseup', handleMouseUp);
   };
+
+  // Dynamic container styling and background grids
+  const containerStyle = {};
+  if (canvasIntegration === "drafting-grid") {
+    const gridColor = theme === "archival" 
+      ? "rgba(76, 108, 140, 0.12)" 
+      : "rgba(129, 204, 204, 0.15)";
+    containerStyle.backgroundImage = `
+      linear-gradient(${gridColor} 1px, transparent 1px),
+      linear-gradient(90deg, ${gridColor} 1px, transparent 1px)
+    `;
+    containerStyle.backgroundSize = "32px 32px";
+    containerStyle.backgroundPosition = "center center";
+  }
+
+  // Viewport styling
+  let viewportClasses = "relative overflow-hidden pointer-events-auto z-10 m-auto transition-all duration-500 ";
+  if (isDevMode) {
+    viewportClasses += "cursor-crosshair border border-dashed border-coastal-sage/50 shadow-coastal-sage/10 ";
+  }
+
+  if (canvasIntegration === "drafting-grid") {
+    viewportClasses += "rounded-2xl border-[6px] border-double border-coastal-teal/35 shadow-2xl bg-coastal-dark";
+  } else if (canvasIntegration === "seamless-bleed") {
+    viewportClasses += "rounded-xl border border-coastal-teal/10 shadow-lg bg-coastal-dark";
+  } else if (canvasIntegration === "autofocus-pan") {
+    viewportClasses += "border-none rounded-none shadow-none bg-coastal-dark";
+  } else {
+    viewportClasses += "rounded-2xl shadow-2xl border border-coastal-teal/20 bg-coastal-dark";
+  }
+
+  const animX = canvasIntegration === "autofocus-pan" ? `${translateX + panOffset.x}%` : `${translateX}%`;
+  const animY = canvasIntegration === "autofocus-pan" ? `${translateY + panOffset.y}%` : `${translateY}%`;
 
   return (
     <div
       ref={containerRef}
       onMouseDown={handleMouseDown}
-      className={`absolute inset-0 w-full h-full bg-coastal-dark flex items-center justify-center select-none scrollbar-custom ${
-        squeezeMitigation === 'focal-width'
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      className={`absolute inset-0 w-full h-full bg-coastal-dark flex items-center justify-center select-none scrollbar-custom transition-all duration-500 ${
+        canvasIntegration !== 'autofocus-pan' && squeezeMitigation === 'focal-width'
           ? 'overflow-y-auto py-8 ' + (isDragging ? 'cursor-grabbing' : 'cursor-grab')
           : 'overflow-hidden'
       }`}
+      style={containerStyle}
     >
       {/* ── Ambient Blurred Backdrop ── */}
       <div className="absolute inset-0 w-full h-full overflow-hidden select-none pointer-events-none z-0">
@@ -224,17 +309,25 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
       <div
         ref={viewportRef}
         onClick={handleViewportClick}
-        className={`m-auto overflow-hidden bg-coastal-dark relative rounded-2xl shadow-2xl border border-coastal-teal/20 transition-all duration-300 pointer-events-auto z-10 ${
-          isDevMode ? 'cursor-crosshair border border-dashed border-coastal-sage/50 shadow-coastal-sage/10' : ''
-        }`}
+        className={viewportClasses}
         style={{
           width: dimensions.width ? `${dimensions.width}px` : '90%',
           height: dimensions.height ? `${dimensions.height}px` : 'auto',
           aspectRatio: '1024 / 571',
-          marginTop: (squeezeMitigation === 'focal-width' && dimensions.height > containerHeight) ? '2rem' : 'auto',
-          marginBottom: (squeezeMitigation === 'focal-width' && dimensions.height > containerHeight) ? '2rem' : 'auto',
+          marginTop: (canvasIntegration !== 'autofocus-pan' && squeezeMitigation === 'focal-width' && dimensions.height > containerHeight) ? '2rem' : 'auto',
+          marginBottom: (canvasIntegration !== 'autofocus-pan' && squeezeMitigation === 'focal-width' && dimensions.height > containerHeight) ? '2rem' : 'auto',
         }}
       >
+        {/* Seamless bleed inner vignette to blend boundaries */}
+        {canvasIntegration === "seamless-bleed" && (
+          <div 
+            className="absolute inset-0 pointer-events-none z-5 transition-all duration-500" 
+            style={{
+              boxShadow: "inset 0 0 80px 40px var(--color-coastal-dark)"
+            }}
+          />
+        )}
+
       {/* ── 2D Spatial Transforming Canvas ── */}
       <motion.div
         className="absolute inset-0 w-full h-full"
@@ -243,8 +336,8 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
           willChange: 'transform',
         }}
         animate={{
-          x: `${translateX}%`,
-          y: `${translateY}%`,
+          x: animX,
+          y: animY,
           scale: camera.z,
           filter: motionBlur && camera.z !== 1 ? ['blur(2px)', 'blur(0px)'] : 'blur(0px)',
         }}

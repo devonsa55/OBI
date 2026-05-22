@@ -4,7 +4,7 @@ import SidebarDrawer from './components/SidebarDrawer';
 import { CameraProvider, useCamera } from './context/CameraContext';
 import obData from './data/coastalData.json';
 import mangroveData from './data/mangroveData.json';
-import { Compass, ChevronDown, Sliders, Volume2, VolumeX, Eye, EyeOff, Sparkles, ChevronRight, Tag, X } from 'lucide-react';
+import { Compass, ChevronDown, Sliders, Volume2, VolumeX, Eye, EyeOff, Sparkles, ChevronRight, Tag, X, Layers } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 // Mapping of available ecosystems
@@ -118,6 +118,7 @@ function AppContent() {
   const [theme, setTheme] = useState("archival");
   const [layoutMode, setLayoutMode] = useState("split"); // "immersive", "grid", or "split"
   const [squeezeMitigation, setSqueezeMitigation] = useState("auto-collapse");
+  const [canvasIntegration, setCanvasIntegration] = useState("drafting-grid");
   const [isLeftCollapsed, setIsLeftCollapsed] = useState(false);
   const [showSettingsOverlay, setShowSettingsOverlay] = useState(false);
 
@@ -407,31 +408,59 @@ function AppContent() {
 
       <span className="h-px bg-coastal-teal/15 w-full" />
 
-      {/* Plate Squeeze Mitigation Selector */}
+      {/* Canvas Integration Mode Selector */}
       <div className="flex flex-col gap-2 pointer-events-auto">
-        <span className="text-[11px] text-coastal-sage font-sans uppercase tracking-widest font-bold select-none flex items-center gap-1">
-          Plate Squeeze Mitigation
+        <span className="text-[11px] text-coastal-sage font-sans uppercase tracking-widest font-bold select-none flex items-center gap-1.5">
+          <Layers className="w-3.5 h-3.5 text-coastal-sage" />
+          Canvas Integration Mode
         </span>
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-1.5">
           {[
-            { id: 'none', label: 'None (Standard)', sub: 'Aspect containment' },
-            { id: 'auto-collapse', label: 'Option 1: Auto-Collapse', sub: 'Focus on transition' },
-            { id: 'focal-width', label: 'Option 2: Cover & Pan', sub: 'Width-fit + drag-scroll' },
-            { id: 'immersive-overlay', label: 'Option 3: Floating Overlay', sub: 'Glassmorphic sidebars' },
-          ].map(({ id, label, sub }) => (
-            <button
-              key={id}
-              onClick={() => setSqueezeMitigation(id)}
-              className={`relative group p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 shadow-md text-center ${
-                squeezeMitigation === id
-                  ? 'border-coastal-sage/90 bg-coastal-teal/20 scale-[1.02] shadow-coastal-sage/10 font-bold text-coastal-light'
-                  : 'border-coastal-teal/20 bg-coastal-forest/10 hover:border-coastal-teal/50 hover:bg-coastal-forest/20 font-normal text-coastal-light/65'
-              }`}
-            >
-              <span className="text-[11.5px] leading-tight">{label}</span>
-              <span className="text-[8.5px] opacity-60">{sub}</span>
-            </button>
-          ))}
+            { id: 'drafting-grid', label: 'Drafting Table Grid', sub: 'Blueprint framing & margins' },
+            { id: 'seamless-bleed', label: 'Seamless Bleed', sub: 'Infinite boundary blending' },
+            { id: 'autofocus-pan', label: 'Autofocus Pan', sub: 'Cover fit + cursor autopan' },
+          ].map(({ id, label, sub }) => {
+            const isActive = canvasIntegration === id;
+            return (
+              <button
+                key={id}
+                onClick={() => {
+                  setCanvasIntegration(id);
+                  if (id === 'autofocus-pan') {
+                    setSqueezeMitigation('focal-width');
+                  } else {
+                    setSqueezeMitigation('none');
+                  }
+                }}
+                className={`relative group p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col items-start justify-center gap-0.5 shadow-md ${
+                  isActive
+                    ? 'border-coastal-sage/90 bg-coastal-teal/20 scale-[1.02] shadow-coastal-sage/10 font-bold text-coastal-light'
+                    : 'border-coastal-teal/20 bg-coastal-forest/10 hover:border-coastal-teal/50 hover:bg-coastal-forest/20 font-normal text-coastal-light/65'
+                }`}
+              >
+                <span className="text-[11.5px] leading-tight font-bold">{label}</span>
+                <span className="text-[9px] opacity-60 font-light">{sub}</span>
+              </button>
+            );
+          })}
+        </div>
+        {/* Real-time mechanical description */}
+        <div className="p-2.5 rounded-xl border border-coastal-teal/15 bg-coastal-dark/30 text-[10px] text-coastal-light/50 leading-normal font-sans font-light mt-1">
+          {canvasIntegration === 'drafting-grid' && (
+            <span>
+              <strong>Drafting Table Grid:</strong> The fixed-aspect image is framed inside a cartographic double border sitting on an infinite, theme-coordinated scientific blueprint grid. Safe, fully readable margins on all devices.
+            </span>
+          )}
+          {canvasIntegration === 'seamless-bleed' && (
+            <span>
+              <strong>Seamless Bleed:</strong> Uses color matching and a broad radial boundary vignette to blend the image's edges into the screen background. Gives the illusion of an infinite, borderless drawing.
+            </span>
+          )}
+          {canvasIntegration === 'autofocus-pan' && (
+            <span>
+              <strong>Autofocus Pan:</strong> Scales the canvas to fill the screen, cropping overflow. Moving your mouse to the edges pans smoothly to reveal margins. Centering is automatically locked when examining details.
+            </span>
+          )}
         </div>
       </div>
 
@@ -606,6 +635,8 @@ function AppContent() {
                 motionBlur={motionBlur}
                 showAnnotations={showAnnotations}
                 squeezeMitigation={squeezeMitigation}
+                theme={theme}
+                canvasIntegration={canvasIntegration}
               />
 
               {/* ── Left Detailed Panel Expand Badge ── */}
@@ -644,6 +675,8 @@ function AppContent() {
               motionBlur={motionBlur}
               showAnnotations={showAnnotations}
               squeezeMitigation={squeezeMitigation}
+              theme={theme}
+              canvasIntegration={canvasIntegration}
             />
 
             {/* ── Floating Top Bar ── */}
