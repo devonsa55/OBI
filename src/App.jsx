@@ -115,8 +115,8 @@ function AppContent() {
   const [showAnnotations, setShowAnnotations] = useState(false);
   const [motionBlur, setMotionBlur] = useState(true);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [theme, setTheme] = useState("default");
-  const [layoutMode, setLayoutMode] = useState("grid"); // "immersive", "grid", or "split"
+  const [theme, setTheme] = useState("archival");
+  const [layoutMode, setLayoutMode] = useState("split"); // "immersive", "grid", or "split"
   const [squeezeMitigation, setSqueezeMitigation] = useState("auto-collapse");
   const [isLeftCollapsed, setIsLeftCollapsed] = useState(false);
   const [showSettingsOverlay, setShowSettingsOverlay] = useState(false);
