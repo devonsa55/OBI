@@ -16,6 +16,16 @@
 
 
 
+[data-theme="light"] {
+  --color-coastal-dark: #eff5f5;
+  --color-coastal-forest: #d7e5e5;
+  --color-coastal-teal: #3d6666;
+  --color-coastal-sage: #529999;
+  --color-coastal-light: #142626;
+  --color-coastal-via: #c5d7d7;
+  --color-coastal-drawer-bg: #e4ecec;
+}
+
 [data-theme="archival"] {
   --color-coastal-dark: #f2ebd9;
   --color-coastal-forest: #e5dac4;
@@ -199,6 +209,115 @@ body,
   .scrollbar-custom::-webkit-scrollbar-track {
     background: var(--scrollbar-track);
   }
+}
+
+/* ── STARK BLACK-AND-WHITE SCHEMATIC WIREFRAME THEME OVERRIDES ── */
+[data-theme="wireframe"] {
+  --color-coastal-dark: #ffffff;
+  --color-coastal-forest: #ffffff;
+  --color-coastal-teal: #a3a3a3;
+  --color-coastal-sage: #000000;
+  --color-coastal-light: #000000;
+  --color-coastal-via: #f5f5f5;
+  --color-coastal-drawer-bg: #ffffff;
+
+  --font-display-custom: "Courier New", Courier, monospace;
+  --font-sans-custom: "Arial", sans-serif;
+}
+
+[data-theme="wireframe"] * {
+  border-radius: 0px !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  background-image: none !important; /* Removes all gradient backdrops */
+  transition: none !important;       /* Quick stark snaps */
+}
+
+/* Force standard black outlines on all components to resemble standard wireframe boxes */
+[data-theme="wireframe"] .border,
+[data-theme="wireframe"] .border-b,
+[data-theme="wireframe"] .border-t,
+[data-theme="wireframe"] .border-l,
+[data-theme="wireframe"] .border-r,
+[data-theme="wireframe"] .border-coastal-teal,
+[data-theme="wireframe"] .border-coastal-teal\/10,
+[data-theme="wireframe"] .border-coastal-teal\/15,
+[data-theme="wireframe"] .border-coastal-teal\/20,
+[data-theme="wireframe"] .border-coastal-teal\/25,
+[data-theme="wireframe"] .border-coastal-teal\/30,
+[data-theme="wireframe"] .border-coastal-teal\/35,
+[data-theme="wireframe"] .border-coastal-sage\/20,
+[data-theme="wireframe"] .border-coastal-sage\/30,
+[data-theme="wireframe"] .border-coastal-sage\/50,
+[data-theme="wireframe"] .border-coastal-sage\/60 {
+  border-color: #000000 !important;
+  border-width: 1px !important;
+  border-style: solid !important;
+}
+
+/* Override background colors to use stark white or light gray blocks */
+[data-theme="wireframe"] .bg-coastal-dark,
+[data-theme="wireframe"] .bg-coastal-dark\/65,
+[data-theme="wireframe"] .bg-coastal-dark\/85,
+[data-theme="wireframe"] .bg-coastal-dark\/95,
+[data-theme="wireframe"] .bg-coastal-forest\/5,
+[data-theme="wireframe"] .bg-coastal-forest\/10,
+[data-theme="wireframe"] .bg-coastal-forest\/15,
+[data-theme="wireframe"] .bg-coastal-forest\/20,
+[data-theme="wireframe"] .bg-coastal-forest\/25,
+[data-theme="wireframe"] .bg-coastal-forest\/30,
+[data-theme="wireframe"] .bg-coastal-forest\/40,
+[data-theme="wireframe"] .bg-coastal-teal\/5,
+[data-theme="wireframe"] .bg-coastal-teal\/10,
+[data-theme="wireframe"] .bg-coastal-teal\/15,
+[data-theme="wireframe"] .bg-coastal-teal\/20,
+[data-theme="wireframe"] .bg-coastal-teal\/25,
+[data-theme="wireframe"] .bg-coastal-teal\/30 {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+/* Make hover states use stark grey blocks to focus on structural layouts */
+[data-theme="wireframe"] button:hover,
+[data-theme="wireframe"] a:hover {
+  background-color: #e5e5e5 !important;
+  color: #000000 !important;
+}
+
+/* Grayscale and invert map backdrops to act as placeholders */
+[data-theme="wireframe"] .bg-cover {
+  background-image: none !important;
+  background-color: #e5e5e5 !important;
+  border: 1.5px dashed #000000 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+[data-theme="wireframe"] .bg-cover::after {
+  content: "IMAGE PLACEHOLDER" !important;
+  font-family: monospace !important;
+  font-size: 14px !important;
+  color: #737373 !important;
+  font-weight: bold !important;
+}
+
+/* Hide ambient sound equalizer animations and other visual fluff */
+[data-theme="wireframe"] .animate-spin-slow,
+[data-theme="wireframe"] .animate-pulse,
+[data-theme="wireframe"] .animate-bounce-subtle {
+  animation: none !important;
+}
+
+/* Give the map canvas itself a clean grid wireframe background */
+[data-theme="wireframe"] .bg-coastal-dark {
+  background-color: #ffffff !important;
+}
+
+/* Render double borders cleanly as sharp wireframe boxes */
+[data-theme="wireframe"] .border-double {
+  border-style: solid !important;
+  border-width: 1px !important;
 }
 
 

@@ -103,7 +103,8 @@ export default function PlatePortal({
               className="absolute inset-0"
               style={{
                 backgroundImage: `url(${plateImage})`,
-                backgroundSize: 'cover',
+                backgroundSize: '100% 100%',
+                backgroundRepeat: 'no-repeat',
                 backgroundPosition: 'center',
               }}
             />

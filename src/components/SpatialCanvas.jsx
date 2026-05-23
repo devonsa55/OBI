@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCamera } from '../context/CameraContext';
-import { Layers } from 'lucide-react';
+
 
 const transitionConfig = {
   type: 'spring',
@@ -10,19 +10,32 @@ const transitionConfig = {
   mass: 0.9,
 };
 
-export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnotations, squeezeMitigation, theme, canvasIntegration }) {
-  const { camera, focusNode, isDevMode, logClickCoordinate, lastCoordinates } = useCamera();
+export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnotations, theme, canvasIntegration }) {
+  const { camera, setCamera, focusNode, resetCamera, isDevMode, logClickCoordinate, lastCoordinates } = useCamera();
   const viewportRef = useRef(null);
   const containerRef = useRef(null);
+  
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
-  const [containerHeight, setContainerHeight] = useState(0);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const dragStartRef = useRef({ scrollTop: 0, startY: 0 });
+  const [sheetOffset, setSheetOffset] = useState({ x: 0, y: 0 });
+  const [targetRatio, setTargetRatio] = useState(2752 / 1536); // Default to standard 43:24 (approx 1.792)
+
+  // Dynamically measure the aspect ratio of the loaded plate image to support any generation standard without cropping
+  useEffect(() => {
+    if (!data?.level0?.plateImage) return;
+    const img = new Image();
+    img.src = data.level0.plateImage;
+    img.onload = () => {
+      if (img.width && img.height) {
+        setTargetRatio(img.width / img.height);
+      }
+    };
+  }, [data?.level0?.plateImage]);
 
   // Track active zoom direction (down vs up) for seamless 3D spatial alignment
   const prevLevelRef = useRef(camera.level);
   const [direction, setDirection] = useState('down');
-  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     if (camera.level > prevLevelRef.current) {
@@ -33,84 +46,40 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
     prevLevelRef.current = camera.level;
   }, [camera.level]);
 
+  // Reset sheet offset when changing levels or integration styles to prevent jumpiness
   useEffect(() => {
-    setPanOffset({ x: 0, y: 0 });
-  }, [canvasIntegration]);
-
-  const handleMouseMove = (e) => {
-    if (canvasIntegration !== "autofocus-pan" || !containerRef.current || camera.level > 0) {
-      if (panOffset.x !== 0 || panOffset.y !== 0) {
-        setPanOffset({ x: 0, y: 0 });
-      }
-      return;
-    }
-    
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width; // 0 to 1
-    const y = (e.clientY - rect.top) / rect.height; // 0 to 1
-    
-    // Autopanning threshold (outer 15%)
-    const threshold = 0.15;
-    let targetX = 0;
-    let targetY = 0;
-    
-    // Horizontal panning
-    if (x < threshold) {
-      const factor = (threshold - x) / threshold; // 0 to 1
-      targetX = factor * 15; // up to +15% translation offset
-    } else if (x > 1 - threshold) {
-      const factor = (x - (1 - threshold)) / threshold; // 0 to 1
-      targetX = -factor * 15; // up to -15% translation offset
-    }
-    
-    // Vertical panning
-    if (y < threshold) {
-      const factor = (threshold - y) / threshold; // 0 to 1
-      targetY = factor * 15; // up to +15% translation offset
-    } else if (y > 1 - threshold) {
-      const factor = (y - (1 - threshold)) / threshold; // 0 to 1
-      targetY = -factor * 15; // up to -15% translation offset
-    }
-    
-    setPanOffset({ x: targetX, y: targetY });
-  };
-
-  const handleMouseLeave = () => {
-    if (canvasIntegration === "autofocus-pan") {
-      setPanOffset({ x: 0, y: 0 });
-    }
-  };
+    setSheetOffset({ x: 0, y: 0 });
+  }, [camera.level, canvasIntegration]);
 
   useEffect(() => {
     if (!containerRef.current) return;
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
-        setContainerHeight(height);
+        setContainerSize({ width, height });
         
-        const targetRatio = 1024 / 571;
         let finalW, finalH;
 
-        if (canvasIntegration === "autofocus-pan" || squeezeMitigation === "focal-width") {
-          // True Cover-Fit: Scale canvas to completely cover the container, cropping overflow
-          const containerRatio = width / height;
-          if (containerRatio > targetRatio) {
-            // Container is wider -> fit to width
-            finalW = width;
-            finalH = width / targetRatio;
-          } else {
-            // Container is taller -> fit to height
+        if (canvasIntegration === 'full-bleed') {
+          // Fit-contain within container bounds to ensure zero image cropping while keeping full-bleed colors
+          if (width / height > targetRatio) {
+            // Container is wider than the map plate ratio -> lock height
             finalH = height;
             finalW = height * targetRatio;
+          } else {
+            // Container is taller than the map plate ratio -> lock width
+            finalW = width;
+            finalH = width / targetRatio;
           }
         } else {
-          // Standard contain fit
-          const maxW = width * 0.9;
-          const maxH = height * 0.9;
+          // Lock scale at minimum of 960px width (Tactile Blueprint Desk responsive mode)
+          const maxW = Math.max(960, width * 0.9);
+          const maxH = Math.max(960 / targetRatio, height * 0.9);
+          
           finalW = maxW;
           finalH = maxW / targetRatio;
           
-          if (finalH > maxH) {
+          if (finalH > maxH && height * 0.9 >= 960 / targetRatio) {
             finalH = maxH;
             finalW = maxH * targetRatio;
           }
@@ -122,7 +91,10 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
 
     resizeObserver.observe(containerRef.current);
     return () => resizeObserver.disconnect();
-  }, [squeezeMitigation, canvasIntegration]);
+  }, [canvasIntegration, targetRatio]);
+
+  // Tactile Desk operates at a baseline min-zoom of 1
+  const autoMinZoom = 1;
 
   // Resolve current active plate details
   let activeSystem = null;
@@ -131,7 +103,6 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
   if (camera.level === 1) {
     activeSystem = data.level0.systems.find(sys => sys.id === camera.activeNodeId);
   } else if (camera.level === 2) {
-    // Find specimen by searching all systems' children
     for (const sys of data.level0.systems) {
       const spec = sys.children?.find(child => child.id === camera.activeNodeId);
       if (spec) {
@@ -164,7 +135,7 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
   if (camera.level === 1 && activeSystemHasPlate) {
     l0Scale = 2.5;
   } else if (camera.level === 2 && activeSystemHasPlate) {
-    l0Scale = 6.25; // Compounding scale (2.5 * 2.5) to keep double-zoom perfectly aligned
+    l0Scale = 6.25;
   }
 
   const l0Origin = (camera.level === 2 && activeSpecimen)
@@ -181,7 +152,7 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
     hotspots = activeSystem.children || [];
   }
 
-  // Resolve annotations based on level, tagging each with its native level for robust exit animation scaling
+  // Resolve annotations based on level
   let activeAnnotations = [];
   if (camera.level === 0) {
     activeAnnotations = (data.level0.annotations || []).map(ann => ({ ...ann, level: 0 }));
@@ -191,49 +162,115 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
     activeAnnotations = (activeSpecimen.annotations || []).map(ann => ({ ...ann, level: 2 }));
   }
 
-  // Forward transform coordinates (focal point centering math)
-  const translateX = 50 - camera.x * camera.z;
-  const translateY = 50 - camera.y * camera.z;
+  // Multiply by autoMinZoom scale multiplier to offset centering position
+  const effectiveZoom = camera.z * autoMinZoom;
+  const translateX = 50 - camera.x * effectiveZoom;
+  const translateY = 50 - camera.y * effectiveZoom;
 
   // Handles developer mode coordinate logging clicks
   const handleViewportClick = (e) => {
-    if (!isDevMode || !viewportRef.current) return;
+    if (!isDevMode || !viewportRef.current || dragStartRef.current.hasMoved) return;
 
     const rect = viewportRef.current.getBoundingClientRect();
-    // Screen percentage relative to the viewport
     const pctX = ((e.clientX - rect.left) / rect.width) * 100;
     const pctY = ((e.clientY - rect.top) / rect.height) * 100;
 
-    // Inverse transform math to resolve exact normalized canvas coordinates
-    const canvasX = (pctX - (50 - camera.x * camera.z)) / camera.z;
-    const canvasY = (pctY - (50 - camera.y * camera.z)) / camera.z;
+    const canvasX = (pctX - (50 - camera.x * effectiveZoom)) / effectiveZoom;
+    const canvasY = (pctY - (50 - camera.y * effectiveZoom)) / effectiveZoom;
 
     logClickCoordinate(canvasX, canvasY);
   };
 
-  const handleMouseDown = (e) => {
-    if (canvasIntegration === 'autofocus-pan' || squeezeMitigation !== 'focal-width') return;
-    if (e.target.closest('.pointer-events-auto') && !e.target.closest('.drag-trigger')) return;
-    
+  // Premium 2D click-and-drag and touch-swipe panning math
+  const dragStartRef = useRef({
+    startX: 0,
+    startY: 0,
+    startCameraX: 50,
+    startCameraY: 50,
+    startSheetX: 0,
+    startSheetY: 0,
+    hasMoved: false
+  });
+
+  const startDrag = (clientX, clientY) => {
     setIsDragging(true);
     dragStartRef.current = {
-      scrollTop: containerRef.current.scrollTop,
-      startY: e.clientY
+      startX: clientX,
+      startY: clientY,
+      startCameraX: camera.x,
+      startCameraY: camera.y,
+      startSheetX: sheetOffset.x,
+      startSheetY: sheetOffset.y,
+      hasMoved: false
     };
+  };
+
+  const moveDrag = (clientX, clientY) => {
+    if (!viewportRef.current) return;
+    
+    const deltaX = clientX - dragStartRef.current.startX;
+    const deltaY = clientY - dragStartRef.current.startY;
+    
+    if (Math.abs(deltaX) > 4 || Math.abs(deltaY) > 4) {
+      dragStartRef.current.hasMoved = true;
+    }
+
+    if (camera.level === 0 && canvasIntegration !== 'full-bleed') {
+      // Tactile Desk: Drag the entire physical blueprint frame relative to the desk boundaries
+      const overflowX = Math.max(0, (dimensions.width - containerSize.width) / 2);
+      const overflowY = Math.max(0, (dimensions.height - containerSize.height) / 2);
+      
+      const newX = Math.max(-overflowX, Math.min(overflowX, dragStartRef.current.startSheetX + deltaX));
+      const newY = Math.max(-overflowY, Math.min(overflowY, dragStartRef.current.startSheetY + deltaY));
+      
+      setSheetOffset({ x: newX, y: newY });
+    } else {
+      // Option B / Zoomed in / Full Bleed Level 0: Pan map canvas smoothly inside the visible viewport borders
+      const deltaX_pct = (deltaX / viewportRef.current.clientWidth) * 100;
+      const deltaY_pct = (deltaY / viewportRef.current.clientHeight) * 100;
+      
+      setCamera(prev => ({
+        ...prev,
+        x: Math.max(0, Math.min(100, dragStartRef.current.startCameraX - deltaX_pct / effectiveZoom)),
+        y: Math.max(0, Math.min(100, dragStartRef.current.startCameraY - deltaY_pct / effectiveZoom))
+      }));
+    }
+  };
+
+  const endDrag = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseDown = (e) => {
+    if (e.button !== 0) return;
+    startDrag(e.clientX, e.clientY);
 
     const handleMouseMoveDrag = (me) => {
-      const deltaY = me.clientY - dragStartRef.current.startY;
-      containerRef.current.scrollTop = dragStartRef.current.scrollTop - deltaY;
+      moveDrag(me.clientX, me.clientY);
     };
 
-    const handleMouseUp = () => {
-      setIsDragging(false);
+    const handleMouseUpDrag = () => {
+      endDrag();
       window.removeEventListener('mousemove', handleMouseMoveDrag);
-      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('mouseup', handleMouseUpDrag);
     };
 
     window.addEventListener('mousemove', handleMouseMoveDrag);
-    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('mouseup', handleMouseUpDrag);
+  };
+
+  const handleTouchStart = (e) => {
+    if (e.touches.length !== 1) return;
+    startDrag(e.touches[0].clientX, e.touches[0].clientY);
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches.length !== 1) return;
+    moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+  };
+
+  const handleTouchEnd = () => {
+    endDrag();
   };
 
   // Dynamic container styling and background grids
@@ -251,34 +288,28 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
   }
 
   // Viewport styling
-  let viewportClasses = "relative overflow-hidden pointer-events-auto z-10 m-auto transition-all duration-500 ";
+  let viewportClasses = "relative overflow-hidden pointer-events-auto z-10 m-auto transition-all duration-300 ";
   if (isDevMode) {
     viewportClasses += "cursor-crosshair border border-dashed border-coastal-sage/50 shadow-coastal-sage/10 ";
   }
 
-  if (canvasIntegration === "drafting-grid") {
-    viewportClasses += "rounded-2xl border-[6px] border-double border-coastal-teal/35 shadow-2xl bg-coastal-dark";
-  } else if (canvasIntegration === "seamless-bleed") {
-    viewportClasses += "rounded-xl border border-coastal-teal/10 shadow-lg bg-coastal-dark";
-  } else if (canvasIntegration === "autofocus-pan") {
-    viewportClasses += "border-none rounded-none shadow-none bg-coastal-dark";
+  if (canvasIntegration === 'full-bleed') {
+    viewportClasses += "w-full h-full bg-coastal-dark border-0 rounded-none shadow-none";
+  } else if (canvasIntegration === 'ambient-float') {
+    viewportClasses += "rounded-2xl border border-white/10 shadow-2xl bg-coastal-dark/95 backdrop-blur-md";
   } else {
-    viewportClasses += "rounded-2xl shadow-2xl border border-coastal-teal/20 bg-coastal-dark";
+    viewportClasses += "rounded-2xl border-[6px] border-double border-coastal-teal/35 shadow-2xl bg-coastal-dark";
   }
-
-  const animX = canvasIntegration === "autofocus-pan" ? `${translateX + panOffset.x}%` : `${translateX}%`;
-  const animY = canvasIntegration === "autofocus-pan" ? `${translateY + panOffset.y}%` : `${translateY}%`;
 
   return (
     <div
       ref={containerRef}
       onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className={`absolute inset-0 w-full h-full bg-coastal-dark flex items-center justify-center select-none scrollbar-custom transition-all duration-500 ${
-        canvasIntegration !== 'autofocus-pan' && squeezeMitigation === 'focal-width'
-          ? 'overflow-y-auto py-8 ' + (isDragging ? 'cursor-grabbing' : 'cursor-grab')
-          : 'overflow-hidden'
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      className={`absolute inset-0 w-full h-full bg-coastal-dark flex items-center justify-center select-none overflow-hidden transition-all duration-500 ${
+        isDragging ? 'cursor-grabbing' : 'cursor-grab'
       }`}
       style={containerStyle}
     >
@@ -296,16 +327,15 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
               style={{
                 backgroundImage: `url(${activeBackdropImage})`,
                 filter: 'blur(40px)',
-                transform: 'scale(1.2)', // Prevents the screen border from showing transparent edges due to blur
+                transform: 'scale(1.2)',
               }}
             />
           )}
         </AnimatePresence>
-        {/* Subtle dark vignette to blend the backdrop and prevent it from distracting the user */}
         <div className="absolute inset-0 bg-coastal-dark/30 pointer-events-none" />
       </div>
 
-      {/* ── Canvas Aspect-Ratio Frame Wrapper ── */}
+      {/* ── Canvas Aspect-Ratio Frame Viewport Sheet ── */}
       <div
         ref={viewportRef}
         onClick={handleViewportClick}
@@ -313,259 +343,241 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
         style={{
           width: dimensions.width ? `${dimensions.width}px` : '90%',
           height: dimensions.height ? `${dimensions.height}px` : 'auto',
-          aspectRatio: '1024 / 571',
-          marginTop: (canvasIntegration !== 'autofocus-pan' && squeezeMitigation === 'focal-width' && dimensions.height > containerHeight) ? '2rem' : 'auto',
-          marginBottom: (canvasIntegration !== 'autofocus-pan' && squeezeMitigation === 'focal-width' && dimensions.height > containerHeight) ? '2rem' : 'auto',
+          aspectRatio: `${targetRatio}`,
+          transform: canvasIntegration === 'full-bleed' ? 'none' : `translate(${sheetOffset.x}px, ${sheetOffset.y}px)`
         }}
       >
-        {/* Seamless bleed inner vignette to blend boundaries */}
-        {canvasIntegration === "seamless-bleed" && (
-          <div 
-            className="absolute inset-0 pointer-events-none z-5 transition-all duration-500" 
-            style={{
-              boxShadow: "inset 0 0 80px 40px var(--color-coastal-dark)"
-            }}
-          />
-        )}
 
-      {/* ── 2D Spatial Transforming Canvas ── */}
-      <motion.div
-        className="absolute inset-0 w-full h-full"
-        style={{
-          transformOrigin: '0% 0%',
-          willChange: 'transform',
-        }}
-        animate={{
-          x: animX,
-          y: animY,
-          scale: camera.z,
-          filter: motionBlur && camera.z !== 1 ? ['blur(2px)', 'blur(0px)'] : 'blur(0px)',
-        }}
-        transition={transitionConfig}
-      >
-        {/* ── LAYER 1 (BOTTOM): Raster Plate Backgrounds with Cross-fades ── */}
-        <div className="absolute inset-0 w-full h-full select-none pointer-events-none">
-          {/* Level 0 Baseline Map */}
-          {data.level0.plateImage && (
-            <motion.div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url(${data.level0.plateImage})` }}
-              animate={{ 
-                opacity: l0Opacity,
-                scale: l0Scale,
-                transformOrigin: l0Origin
-              }}
-              transition={transitionConfig}
-            />
-          )}
-
-          {/* Level 1 Subsystem Plates */}
-          {data.level0.systems.map((sys) => {
-            if (!sys.plateImage) return null;
-            const isActive = camera.level === 1 && camera.activeNodeId === sys.id;
-            const isChildActive = camera.level === 2 && activeSystem?.id === sys.id;
-            
-            const opacityVal = isActive ? 1.0 : (isChildActive ? 0.3 : 0.0);
-            const scaleVal = isActive ? 1.0 : (isChildActive ? 4.0 : 0.4);
-            const originVal = (isChildActive && activeSpecimen)
-              ? `${activeSpecimen.coordinates?.x || 50}% ${activeSpecimen.coordinates?.y || 50}%`
-              : `${sys.coordinates?.x || 50}% ${sys.coordinates?.y || 50}%`;
-
-            return (
+        {/* ── 2D Spatial Transforming Canvas ── */}
+        <motion.div
+          className="absolute inset-0 w-full h-full"
+          style={{
+            transformOrigin: '0% 0%',
+            willChange: 'transform',
+          }}
+          animate={{
+            x: `${translateX}%`,
+            y: `${translateY}%`,
+            scale: effectiveZoom,
+            filter: motionBlur && camera.z !== 1 ? ['blur(2px)', 'blur(0px)'] : 'blur(0px)',
+          }}
+          transition={transitionConfig}
+        >
+          {/* LAYER 1 (BOTTOM): Background plates */}
+          <div className="absolute inset-0 w-full h-full select-none pointer-events-none">
+            {data.level0.plateImage && (
               <motion.div
-                key={sys.id}
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `url(${sys.plateImage})` }}
+                className="absolute inset-0 bg-[length:100%_100%] bg-no-repeat bg-center"
+                style={{ backgroundImage: `url(${data.level0.plateImage})` }}
                 animate={{ 
-                  opacity: opacityVal,
-                  scale: scaleVal,
-                  transformOrigin: originVal
+                  opacity: l0Opacity,
+                  scale: l0Scale,
+                  transformOrigin: l0Origin
                 }}
                 transition={transitionConfig}
               />
-            );
-          })}
+            )}
 
-          {/* Level 2 Specimen Plates */}
-          {data.level0.systems.flatMap((sys) => sys.children || []).map((spec) => {
-            if (!spec.bgImage) return null;
-            const isActive = camera.level === 2 && camera.activeNodeId === spec.id;
-            
-            const opacityVal = isActive ? 1.0 : 0.0;
-            const scaleVal = isActive ? 1.0 : 0.25;
-            const originVal = `${spec.coordinates?.x || 50}% ${spec.coordinates?.y || 50}%`;
+            {data.level0.systems.map((sys) => {
+              if (!sys.plateImage) return null;
+              const isActive = camera.level === 1 && camera.activeNodeId === sys.id;
+              const isChildActive = camera.level === 2 && activeSystem?.id === sys.id;
+              
+              const opacityVal = isActive ? 1.0 : (isChildActive ? 0.3 : 0.0);
+              const scaleVal = isActive ? 1.0 : (isChildActive ? 4.0 : 0.4);
+              const originVal = (isChildActive && activeSpecimen)
+                ? `${activeSpecimen.coordinates?.x || 50}% ${activeSpecimen.coordinates?.y || 50}%`
+                : `${sys.coordinates?.x || 50}% ${sys.coordinates?.y || 50}%`;
 
-            return (
-              <motion.div
-                key={spec.id}
-                className="absolute inset-0 bg-cover bg-center"
-                style={{ backgroundImage: `url(${spec.bgImage})` }}
-                animate={{ 
-                  opacity: opacityVal,
-                  scale: scaleVal,
-                  transformOrigin: originVal
-                }}
-                transition={transitionConfig}
-              />
-            );
-          })}
-        </div>
-
-        {/* Scrim Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-coastal-dark/15 via-transparent to-coastal-dark/25 pointer-events-none" />
-
-        {/* ── LAYER 2 (MIDDLE): SVG Dynamic Vector Path Overlay ── */}
-        {showAnnotations && (
-          <div className="absolute inset-0 w-full h-full pointer-events-none z-10">
-            <svg
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              className="absolute inset-0 w-full h-full pointer-events-none text-coastal-sage stroke-coastal-sage fill-none"
-            >
-              <defs>
-                <marker
-                  id="arrowhead-spatial"
-                  markerWidth="8"
-                  markerHeight="6"
-                  refX="6"
-                  refY="3"
-                  orient="auto"
-                  markerUnits="userSpaceOnUse"
-                >
-                  <polygon points="0 0, 8 3, 0 6" className="fill-coastal-sage text-coastal-sage" />
-                </marker>
-              </defs>
-
-              {/* Render Dotted Self-Drawing Flow Arrows */}
-              {activeAnnotations
-                .filter(ann => ann.type === 'arrow')
-                .map((ann) => (
-                  <motion.path
-                    key={ann.id}
-                    d={`M ${ann.startX} ${ann.startY} L ${ann.endX} ${ann.endY}`}
-                    strokeWidth="0.5"
-                    markerEnd="url(#arrowhead-spatial)"
-                    strokeDasharray="1.5,1.5"
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    animate={{ pathLength: 1, opacity: 0.85 }}
-                    transition={{ duration: 1.2, ease: 'easeInOut', delay: 0.3 }}
-                  />
-                ))}
-            </svg>
-          </div>
-        )}
-
-        {/* ── LAYER 3 (TOP): HTML UI Layer (Hotspots, Badges, Labels) ── */}
-        <div className="absolute inset-0 w-full h-full pointer-events-none z-20">
-          {/* Active Hotspots */}
-          <AnimatePresence>
-            {hotspots.map((node) => {
-              const nextLevel = camera.level + 1;
               return (
-                <HotspotBeacon
-                  key={node.id}
-                  node={node}
-                  level={camera.level}
-                  onClick={() => focusNode(node, nextLevel)}
-                  showBeacons={showBeacons}
-                  direction={direction}
+                <motion.div
+                  key={sys.id}
+                  className="absolute inset-0 bg-[length:100%_100%] bg-no-repeat bg-center"
+                  style={{ backgroundImage: `url(${sys.plateImage})` }}
+                  animate={{ 
+                    opacity: opacityVal,
+                    scale: scaleVal,
+                    transformOrigin: originVal
+                  }}
+                  transition={transitionConfig}
                 />
               );
             })}
-          </AnimatePresence>
- 
-          {/* HTML Text Labels */}
-          <AnimatePresence>
-            {showAnnotations && activeAnnotations
-              .filter(ann => ann.type === 'text')
-              .map((ann) => {
-                const annInitialScale = direction === 'down' ? (ann.level === 2 ? 0.25 : 0.4) : 3.5;
-                const annExitScale = direction === 'down' ? 3.5 : (ann.level === 2 ? 0.25 : 0.4);
-                return (
-                  <motion.div
-                    key={ann.id}
-                    initial={{ opacity: 0, scale: annInitialScale }}
-                    animate={{ opacity: 0.85, scale: 1 }}
-                    exit={{ opacity: 0, scale: annExitScale }}
-                    transition={transitionConfig}
-                    className="absolute font-sans font-medium uppercase tracking-widest text-[9px] text-coastal-light/75 border-b border-dashed border-coastal-teal/30 px-1 py-0.5 select-none pointer-events-auto"
-                    style={{
-                      left: `${ann.x}%`,
-                      top: `${ann.y}%`,
-                      transform: 'translate(-50%, -50%)',
-                    }}
-                  >
-                    {ann.label}
-                  </motion.div>
-                );
-              })}
-          </AnimatePresence>
- 
-          {/* HTML Midpoint Arrow Labels */}
-          <AnimatePresence>
-            {showAnnotations && activeAnnotations
-              .filter(ann => ann.type === 'arrow')
-              .map((ann) => {
-                const midX = (ann.startX + ann.endX) / 2;
-                const midY = (ann.startY + ann.endY) / 2;
-                const annInitialScale = direction === 'down' ? (ann.level === 2 ? 0.25 : 0.4) : 3.5;
-                const annExitScale = direction === 'down' ? 3.5 : (ann.level === 2 ? 0.25 : 0.4);
-                return (
-                  <motion.div
-                    key={`${ann.id}-label`}
-                    initial={{ opacity: 0, scale: annInitialScale }}
-                    animate={{ opacity: 0.85, scale: 1 }}
-                    exit={{ opacity: 0, scale: annExitScale }}
-                    transition={transitionConfig}
-                    className="absolute font-sans font-bold uppercase tracking-wider text-[8px] text-coastal-sage bg-coastal-dark/90 px-2 py-0.5 rounded-full border border-coastal-teal/20 shadow-md whitespace-nowrap select-none pointer-events-auto"
-                    style={{
-                      left: `${midX}%`,
-                      top: `${midY}%`,
-                      transform: 'translate(-50%, -50%)',
-                    }}
-                  >
-                    {ann.label}
-                  </motion.div>
-                );
-              })}
-          </AnimatePresence>
-        </div>
 
-        {/* ── Optional Dev Mode Grid overlay ── */}
-        {isDevMode && (
-          <div className="absolute inset-0 w-full h-full border border-coastal-sage/35 pointer-events-none z-30 opacity-45">
-            {/* Horizontal Gridlines */}
-            {[...Array(9)].map((_, i) => (
-              <div
-                key={`h-${i}`}
-                className="absolute left-0 right-0 h-px bg-coastal-sage/20 border-dashed"
-                style={{ top: `${(i + 1) * 10}%` }}
-              />
-            ))}
-            {/* Vertical Gridlines */}
-            {[...Array(9)].map((_, i) => (
-              <div
-                key={`v-${i}`}
-                className="absolute top-0 bottom-0 w-px bg-coastal-sage/20 border-dashed"
-                style={{ left: `${(i + 1) * 10}%` }}
-              />
-            ))}
-            {/* Centered crosshair */}
-            <div className="absolute left-1/2 top-1/2 w-4 h-px bg-coastal-sage -translate-x-1/2 -translate-y-1/2" />
-            <div className="absolute left-1/2 top-1/2 h-4 w-px bg-coastal-sage -translate-x-1/2 -translate-y-1/2" />
+            {data.level0.systems.flatMap((sys) => sys.children || []).map((spec) => {
+              if (!spec.bgImage) return null;
+              const isActive = camera.level === 2 && camera.activeNodeId === spec.id;
+              
+              const opacityVal = isActive ? 1.0 : 0.0;
+              const scaleVal = isActive ? 1.0 : 0.25;
+              const originVal = `${spec.coordinates?.x || 50}% ${spec.coordinates?.y || 50}%`;
+
+              return (
+                <motion.div
+                  key={spec.id}
+                  className="absolute inset-0 bg-[length:100%_100%] bg-no-repeat bg-center"
+                  style={{ backgroundImage: `url(${spec.bgImage})` }}
+                  animate={{ 
+                    opacity: opacityVal,
+                    scale: scaleVal,
+                    transformOrigin: originVal
+                  }}
+                  transition={transitionConfig}
+                />
+              );
+            })}
           </div>
-        )}
-      </motion.div>
+
+          <div className="absolute inset-0 bg-gradient-to-b from-coastal-dark/15 via-transparent to-coastal-dark/25 pointer-events-none z-5" />
+
+          {/* LAYER 2 (MIDDLE): SVG flow arrows */}
+          {showAnnotations && (
+            <div className="absolute inset-0 w-full h-full pointer-events-none z-10">
+              <svg
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                className="absolute inset-0 w-full h-full pointer-events-none text-coastal-sage stroke-coastal-sage fill-none"
+              >
+                <defs>
+                  <marker
+                    id="arrowhead-spatial"
+                    markerWidth="8"
+                    markerHeight="6"
+                    refX="6"
+                    refY="3"
+                    orient="auto"
+                    markerUnits="userSpaceOnUse"
+                  >
+                    <polygon points="0 0, 8 3, 0 6" className="fill-coastal-sage text-coastal-sage" />
+                  </marker>
+                </defs>
+
+                {activeAnnotations
+                  .filter(ann => ann.type === 'arrow')
+                  .map((ann) => (
+                    <motion.path
+                      key={ann.id}
+                      d={`M ${ann.startX} ${ann.startY} L ${ann.endX} ${ann.endY}`}
+                      strokeWidth="0.5"
+                      markerEnd="url(#arrowhead-spatial)"
+                      strokeDasharray="1.5,1.5"
+                      initial={{ pathLength: 0, opacity: 0 }}
+                      animate={{ pathLength: 1, opacity: 0.85 }}
+                      transition={{ duration: 1.2, ease: 'easeInOut', delay: 0.3 }}
+                    />
+                  ))}
+              </svg>
+            </div>
+          )}
+
+          {/* LAYER 3 (TOP): HTML Overlay Hotspots & Labels */}
+          <div className="absolute inset-0 w-full h-full pointer-events-none z-20">
+            <AnimatePresence>
+              {hotspots.map((node) => {
+                const nextLevel = camera.level + 1;
+                return (
+                  <HotspotBeacon
+                    key={node.id}
+                    node={node}
+                    level={camera.level}
+                    onClick={() => {
+                      if (dragStartRef.current.hasMoved) return;
+                      focusNode(node, nextLevel);
+                    }}
+                    showBeacons={showBeacons}
+                    direction={direction}
+                  />
+                );
+              })}
+            </AnimatePresence>
+   
+            <AnimatePresence>
+              {showAnnotations && activeAnnotations
+                .filter(ann => ann.type === 'text')
+                .map((ann) => {
+                  const annInitialScale = direction === 'down' ? (ann.level === 2 ? 0.25 : 0.4) : 3.5;
+                  const annExitScale = direction === 'down' ? 3.5 : (ann.level === 2 ? 0.25 : 0.4);
+                  return (
+                    <motion.div
+                      key={ann.id}
+                      initial={{ opacity: 0, scale: annInitialScale }}
+                      animate={{ opacity: 0.85, scale: 1 }}
+                      exit={{ opacity: 0, scale: annExitScale }}
+                      transition={transitionConfig}
+                      className="absolute font-sans font-medium uppercase tracking-widest text-[12px] text-coastal-light/75 border-b border-dashed border-coastal-teal/30 px-1.5 py-0.5 select-none pointer-events-auto"
+                      style={{
+                        left: `${ann.x}%`,
+                        top: `${ann.y}%`,
+                        transform: 'translate(-50%, -50%)',
+                      }}
+                    >
+                      {ann.label}
+                    </motion.div>
+                  );
+                })}
+            </AnimatePresence>
+   
+            <AnimatePresence>
+              {showAnnotations && activeAnnotations
+                .filter(ann => ann.type === 'arrow')
+                .map((ann) => {
+                  const midX = (ann.startX + ann.endX) / 2;
+                  const midY = (ann.startY + ann.endY) / 2;
+                  const annInitialScale = direction === 'down' ? (ann.level === 2 ? 0.25 : 0.4) : 3.5;
+                  const annExitScale = direction === 'down' ? 3.5 : (ann.level === 2 ? 0.25 : 0.4);
+                  return (
+                    <motion.div
+                      key={`${ann.id}-label`}
+                      initial={{ opacity: 0, scale: annInitialScale }}
+                      animate={{ opacity: 0.85, scale: 1 }}
+                      exit={{ opacity: 0, scale: annExitScale }}
+                      transition={transitionConfig}
+                      className="absolute font-sans font-bold uppercase tracking-wider text-[11px] text-coastal-sage bg-coastal-dark/90 px-2.5 py-0.5 rounded-full border border-coastal-teal/20 shadow-md whitespace-nowrap select-none pointer-events-auto"
+                      style={{
+                        left: `${midX}%`,
+                        top: `${midY}%`,
+                        transform: 'translate(-50%, -50%)',
+                      }}
+                    >
+                      {ann.label}
+                    </motion.div>
+                  );
+                })}
+            </AnimatePresence>
+          </div>
+
+          {/* Dev Mode gridlines */}
+          {isDevMode && (
+            <div className="absolute inset-0 w-full h-full border border-coastal-sage/35 pointer-events-none z-30 opacity-45">
+              {[...Array(9)].map((_, i) => (
+                <div
+                  key={`h-${i}`}
+                  className="absolute left-0 right-0 h-px bg-coastal-sage/20 border-dashed"
+                  style={{ top: `${(i + 1) * 10}%` }}
+                />
+              ))}
+              {[...Array(9)].map((_, i) => (
+                <div
+                  key={`v-${i}`}
+                  className="absolute top-0 bottom-0 w-px bg-coastal-sage/20 border-dashed"
+                  style={{ left: `${(i + 1) * 10}%` }}
+                />
+              ))}
+              <div className="absolute left-1/2 top-1/2 w-4 h-px bg-coastal-sage -translate-x-1/2 -translate-y-1/2" />
+              <div className="absolute left-1/2 top-1/2 h-4 w-px bg-coastal-sage -translate-x-1/2 -translate-y-1/2" />
+            </div>
+          )}
+        </motion.div>
       </div>
 
-      {/* Dev HUD Badge - float centered over parent viewport */}
+      {/* Dev coords overlay */}
       <AnimatePresence>
         {isDevMode && lastCoordinates && (
           <motion.div
             initial={{ opacity: 0, y: 30, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.9 }}
-            className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-coastal-dark/95 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-coastal-sage/50 shadow-2xl flex items-center gap-4 z-[9999] pointer-events-auto font-sans"
+            className="absolute bottom-6 right-6 bg-coastal-dark/95 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-coastal-sage/50 shadow-2xl flex items-center gap-4 z-[9999] pointer-events-auto font-sans"
           >
             <div className="flex flex-col">
               <span className="text-[9px] uppercase tracking-widest text-coastal-sage font-bold select-none">
@@ -582,12 +594,11 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
           </motion.div>
         )}
       </AnimatePresence>
+
     </div>
   );
 }
-/* ──────────────────────────────────────────────────────────────────
-   HotspotBeacon – projected hotspot button
-   ────────────────────────────────────────────────────────────────── */
+
 function HotspotBeacon({ node, level, onClick, showBeacons, direction }) {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -614,7 +625,6 @@ function HotspotBeacon({ node, level, onClick, showBeacons, direction }) {
       }}
     >
       <div className="relative flex items-center justify-center">
-        {/* Continuous outer expanding ripple */}
         {showBeacons && (
           <motion.div
             className={`absolute rounded-full border border-current pointer-events-none ${
@@ -633,7 +643,6 @@ function HotspotBeacon({ node, level, onClick, showBeacons, direction }) {
           />
         )}
 
-        {/* Breathing pulse ring */}
         {showBeacons && (
           <motion.div
             className={`absolute rounded-full border border-current pointer-events-none ${
@@ -652,7 +661,6 @@ function HotspotBeacon({ node, level, onClick, showBeacons, direction }) {
           />
         )}
 
-        {/* Core interactive dot */}
         <div
           className={`w-8 h-8 rounded-full border-2 shadow-xl flex items-center justify-center transition-all duration-300 ${
             isHovered
@@ -672,7 +680,6 @@ function HotspotBeacon({ node, level, onClick, showBeacons, direction }) {
         </div>
       </div>
 
-      {/* Floating tooltip pill */}
       <AnimatePresence>
         {isHovered && (
           <motion.div
@@ -680,7 +687,7 @@ function HotspotBeacon({ node, level, onClick, showBeacons, direction }) {
             animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
             exit={{ opacity: 0, y: 6, scale: 0.9, x: '-50%' }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="absolute bottom-full left-1/2 mb-3.5 px-4 py-1.5 bg-coastal-dark/95 backdrop-blur-md text-coastal-light text-xs font-semibold rounded-full whitespace-nowrap border border-coastal-sage/60 shadow-2xl font-sans flex items-center gap-1.5 pointer-events-none z-50"
+            className="absolute bottom-full left-1/2 mb-3.5 px-4.5 py-2 bg-coastal-dark/95 backdrop-blur-md text-coastal-light text-[14px] font-bold rounded-full whitespace-nowrap border border-coastal-sage/60 shadow-2xl font-sans flex items-center gap-1.5 pointer-events-none z-50"
           >
             {node.title}
             <span className="text-[10px] text-coastal-sage">→</span>

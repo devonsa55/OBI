@@ -4,8 +4,46 @@ import SidebarDrawer from './components/SidebarDrawer';
 import { CameraProvider, useCamera } from './context/CameraContext';
 import obData from './data/coastalData.json';
 import mangroveData from './data/mangroveData.json';
-import { Compass, ChevronDown, Sliders, Volume2, VolumeX, Eye, EyeOff, Sparkles, ChevronRight, Tag, X, Layers } from 'lucide-react';
+import { Compass, Sparkles, Sliders, X, Eye, EyeOff, Volume2, VolumeX, Tag, Tv, Home, Locate, ZoomIn, ZoomOut } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
+
+const THEMES = [
+  { id: "default", name: "Sage Dark", primary: "bg-[#81cccc]", secondary: "bg-[#2f4f4f]" },
+  { id: "light", name: "Sage Light", primary: "bg-[#529999]", secondary: "bg-[#eff5f5]" },
+  { id: "archival", name: "Archival Draft", primary: "bg-[#b55138]", secondary: "bg-[#e5dac4]" },
+  { id: "wireframe", name: "Wireframe Draft", primary: "bg-[#ffffff] border border-neutral-400", secondary: "bg-[#000000]" }
+];
+
+function Toggle({ label, checked, onChange, activeIcon, inactiveIcon, description }) {
+  return (
+    <div className="flex items-center justify-between gap-4 py-2.5 select-none pointer-events-auto">
+      <div className="flex flex-col gap-0.5 max-w-[72%]">
+        <span className="text-[15.5px] font-bold text-coastal-light/95 leading-none flex items-center gap-2">
+          {checked ? activeIcon : inactiveIcon}
+          {label}
+        </span>
+        {description && (
+          <span className="text-[12.5px] text-coastal-light/40 leading-normal font-sans font-light">
+            {description}
+          </span>
+        )}
+      </div>
+      <button
+        onClick={() => onChange(!checked)}
+        className={`w-12 h-6.5 rounded-full p-0.5 transition-all duration-300 relative focus:outline-none cursor-pointer flex items-center shrink-0 ${
+          checked ? 'bg-gradient-to-r from-coastal-teal to-coastal-sage shadow shadow-coastal-sage/20' : 'bg-coastal-forest/30 border border-coastal-teal/30'
+        }`}
+      >
+        <motion.div
+          layout
+          className="w-5 h-5 rounded-full bg-white shadow"
+          animate={{ x: 20 * checked }}
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        />
+      </button>
+    </div>
+  );
+}
 
 // Mapping of available ecosystems
 const ECOSYSTEMS = {
@@ -24,69 +62,13 @@ const ECOSYSTEM_SOUNDS = {
   "florida-mangroves": "https://www.soundjay.com/nature/sounds/cricket-chirping-1.mp3"
 };
 
-const THEMES = [
-  { id: "default", name: "Coastal Sage", primary: "bg-[#81cccc]", secondary: "bg-[#2f4f4f]", tooltip: "Default Seafoam & Slate" },
-  { id: "archival", name: "Archival Draft", primary: "bg-[#b55138]", secondary: "bg-[#e5dac4]", tooltip: "1978 Environmental Assessment Ink & Parchment" }
-];
-
-const Equalizer = () => (
-  <div className="flex items-end gap-[2.5px] h-3.5 w-4 shrink-0 overflow-hidden select-none mb-[2px]">
-    {[...Array(4)].map((_, i) => (
-      <motion.div
-        key={i}
-        className="w-[2.5px] bg-coastal-sage rounded-full"
-        animate={{
-          height: ["2px", "14px", "2px"]
-        }}
-        transition={{
-          duration: 0.6 + i * 0.15,
-          repeat: Infinity,
-          repeatType: "reverse",
-          ease: "easeInOut"
-        }}
-      />
-    ))}
-  </div>
-);
-
-function Toggle({ label, checked, onChange, activeIcon, inactiveIcon, description }) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-1.5 select-none pointer-events-auto">
-      <div className="flex flex-col gap-0.5 max-w-[72%]">
-        <span className="text-[13px] font-bold text-coastal-light/95 leading-snug flex items-center gap-1.5">
-          {checked ? activeIcon : inactiveIcon}
-          {label}
-        </span>
-        {description && (
-          <span className="text-[10px] text-coastal-light/40 leading-normal font-sans font-light">
-            {description}
-          </span>
-        )}
-      </div>
-      <button
-        onClick={() => onChange(!checked)}
-        className={`w-10 h-5.5 rounded-full p-0.5 transition-all duration-300 relative focus:outline-none cursor-pointer flex items-center ${
-          checked ? 'bg-gradient-to-r from-coastal-teal to-coastal-sage shadow-md shadow-coastal-sage/20' : 'bg-coastal-forest/30 border border-coastal-teal/30'
-        }`}
-      >
-        <motion.div
-          layout
-          className="w-4 h-4 rounded-full bg-white shadow-md"
-          animate={{ x: checked ? 18 : 0 }}
-          transition={{ type: "spring", stiffness: 500, damping: 30 }}
-        />
-      </button>
-    </div>
-  );
-}
-
 function AppContent() {
   const [selectedEcoKey, setSelectedEcoKey] = useState("ocean-beach");
   const activeEco = ECOSYSTEMS[selectedEcoKey];
   const activeData = activeEco.data;
 
   // 2D Spatial Camera Global Context Telemetry
-  const { camera, focusNode, resetCamera, isDevMode, setIsDevMode } = useCamera();
+  const { camera, setCamera, focusNode, resetCamera, isDevMode, setIsDevMode } = useCamera();
 
   // Resolve current active plate details from global camera telemetry
   let activeSystem = null;
@@ -95,7 +77,6 @@ function AppContent() {
   if (camera.level === 1) {
     activeSystem = activeData.level0.systems.find(sys => sys.id === camera.activeNodeId);
   } else if (camera.level === 2) {
-    // Find specimen by searching all systems' children
     for (const sys of activeData.level0.systems) {
       const spec = sys.children?.find(child => child.id === camera.activeNodeId);
       if (spec) {
@@ -107,80 +88,34 @@ function AppContent() {
   }
 
   const currentLevel = camera.level;
+  const activeNode = currentLevel === 2 ? activeSpecimen : (currentLevel === 1 ? activeSystem : null);
 
   const [showHelper, setShowHelper] = useState(false);
 
-  // Settings State
+  // Settings State Managed Locally & Orchestrated inside Unified Drawer
   const [showBeacons, setShowBeacons] = useState(true);
   const [showAnnotations, setShowAnnotations] = useState(false);
   const [motionBlur, setMotionBlur] = useState(true);
   const [isAudioPlaying, setIsAudioPlaying] = useState(false);
-  const [theme, setTheme] = useState("archival");
-  const [layoutMode, setLayoutMode] = useState("split"); // "immersive", "grid", or "split"
-  const [squeezeMitigation, setSqueezeMitigation] = useState("auto-collapse");
-  const [canvasIntegration, setCanvasIntegration] = useState("drafting-grid");
-  const [isLeftCollapsed, setIsLeftCollapsed] = useState(false);
-  const [showSettingsOverlay, setShowSettingsOverlay] = useState(false);
-
-  const savedCollapsedStatesRef = useRef(null);
-  const settingsOverlayRef = useRef(null);
-
-  // Derived flags
-  const isImmersive = layoutMode === 'immersive';
-  const isFloating = isImmersive || squeezeMitigation === 'immersive-overlay';
-
-  // Squeeze Mitigation Option 1: Auto-Collapse detailed panel at Level 2
-  useEffect(() => {
-    if (squeezeMitigation === "auto-collapse") {
-      if (camera.level === 2) {
-        if (!savedCollapsedStatesRef.current) {
-          savedCollapsedStatesRef.current = {
-            left: isLeftCollapsed
-          };
-        }
-        setIsLeftCollapsed(true);
-      } else if (camera.level < 2) {
-        if (savedCollapsedStatesRef.current) {
-          setIsLeftCollapsed(savedCollapsedStatesRef.current.left);
-          savedCollapsedStatesRef.current = null;
-        }
-      }
-    }
-  }, [camera.level, squeezeMitigation]);
-
-  // Cleanly restore states if user disables Option 1 while zoomed in
-  useEffect(() => {
-    if (squeezeMitigation !== "auto-collapse" && savedCollapsedStatesRef.current) {
-      setIsLeftCollapsed(savedCollapsedStatesRef.current.left);
-      savedCollapsedStatesRef.current = null;
-    }
-  }, [squeezeMitigation]);
-
-  // Close settings overlay on outside click
-  useEffect(() => {
-    if (!showSettingsOverlay) return;
-    const handleClick = (e) => {
-      if (settingsOverlayRef.current && !settingsOverlayRef.current.contains(e.target)) {
-        setShowSettingsOverlay(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
-  }, [showSettingsOverlay]);
+  const [theme, setTheme] = useState("light");
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [layoutMode, setLayoutMode] = useState("theater-mode");
+  const [canvasIntegration, setCanvasIntegration] = useState("full-bleed");
 
   const audioRef = useRef(null);
+
+  // Auto-expand sidebar when user clicks a system or specimen hotspot
+  useEffect(() => {
+    if (currentLevel > 0) {
+      setIsCollapsed(false);
+    }
+  }, [currentLevel, camera.activeNodeId]);
 
   // Theme Synchronization
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
-
-  // Cleanly open the left detailed panel when transitioning to Level 2
-  useEffect(() => {
-    if (camera.level === 2) {
-      setIsLeftCollapsed(false);
-    }
-  }, [camera.level, camera.activeNodeId]);
 
   // Onboarding Helper
   useEffect(() => {
@@ -244,502 +179,231 @@ function AppContent() {
   }, []);
 
   const triggerReset = () => {
-    setIsLeftCollapsed(false);
+    setIsCollapsed(false);
     resetCamera();
   };
 
-  // Switch active ecosystems safely and flush navigation
   const handleEcosystemChange = (key) => {
     setSelectedEcoKey(key);
     triggerReset();
   };
 
-  // Timeline Breadcrumb Steps
-  const getTimelineSteps = () => {
-    return [
-      {
-        level: 0,
-        type: 'ecosystem',
-        title: activeData.name,
-        subtitle: 'Region Baseline',
-        status: currentLevel === 0 ? 'active' : 'completed',
-        onClick: triggerReset
-      },
-      {
-        level: 1,
-        type: 'system',
-        title: activeSystem ? activeSystem.title : 'System View',
-        subtitle: activeSystem ? 'Active Sub-system' : 'Click a hotspot to explore',
-        status: activeSystem
-          ? (currentLevel > 1 ? 'completed' : 'active')
-          : 'pending',
-        onClick: activeSystem && currentLevel > 1 ? () => {
-          setIsLeftCollapsed(false);
-          focusNode(activeSystem, 1);
-        } : null
-      },
-      {
-        level: 2,
-        type: 'specimen',
-        title: activeSpecimen ? activeSpecimen.title : 'Specimen View',
-        subtitle: activeSpecimen ? 'Science Literature Active' : 'Dive deeper inside system',
-        status: activeSpecimen ? 'active' : 'pending',
-        onClick: null
-      }
-    ];
-  };
-
-  // Shared settings panel body (reused in top-bar overlay)
-  const renderSettingsBody = () => (
-    <div className="flex flex-col gap-3.5">
-      {/* Ecosystem Selector */}
-      <div className="flex flex-col gap-2 pointer-events-auto">
-        <span className="text-[11px] text-coastal-sage font-sans uppercase tracking-widest font-bold select-none">
-          Active Ecosystem
-        </span>
-        <div className="grid grid-cols-2 gap-2">
-          {Object.entries(ECOSYSTEMS).map(([key, eco]) => {
-            const isActive = selectedEcoKey === key;
-            return (
-              <button
-                key={key}
-                onClick={() => handleEcosystemChange(key)}
-                className={`relative group p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-center gap-1 shadow-md text-center ${
-                  isActive
-                    ? 'border-coastal-sage/90 bg-coastal-teal/20 scale-[1.02] shadow-coastal-sage/10 font-bold text-coastal-light'
-                    : 'border-coastal-teal/20 bg-coastal-forest/10 hover:border-coastal-teal/50 hover:bg-coastal-forest/20 font-normal text-coastal-light/65'
-                }`}
-              >
-                <span className="text-[11.5px] leading-tight">{eco.name}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <span className="h-px bg-coastal-teal/15 w-full" />
-
-      {/* Toggle Switches */}
-      <div className="flex flex-col gap-2.5 pointer-events-auto">
-        <Toggle 
-          label="Hotspot Beacons"
-          checked={showBeacons}
-          onChange={setShowBeacons}
-          activeIcon={<Eye className="w-3.5 h-3.5 text-coastal-sage animate-pulse" />}
-          inactiveIcon={<EyeOff className="w-3.5 h-3.5 text-coastal-light/45" />}
-          description="Visual wayfinding beacons & ripple animations"
-        />
-        
-        <Toggle 
-          label="Cinematic Transition Blur"
-          checked={motionBlur}
-          onChange={setMotionBlur}
-          activeIcon={<Sparkles className="w-3.5 h-3.5 text-coastal-sage animate-pulse" />}
-          inactiveIcon={<Sparkles className="w-3.5 h-3.5 text-coastal-light/45" />}
-          description="Gaussian blur during plate portal transitions"
-        />
-        
-        <Toggle 
-          label="Ambient Soundtrack"
-          checked={isAudioPlaying}
-          onChange={setIsAudioPlaying}
-          activeIcon={<Volume2 className="w-3.5 h-3.5 text-coastal-sage animate-bounce" />}
-          inactiveIcon={<VolumeX className="w-3.5 h-3.5 text-coastal-light/45" />}
-          description="Loopable nature soundscapes scaled for concentration"
-        />
-
-        {/* Application Layout Mode Selector */}
-        <div className="flex flex-col gap-2 pointer-events-auto my-1 select-none">
-          <span className="text-[11px] text-coastal-sage font-sans uppercase tracking-widest font-bold flex items-center gap-1.5">
-            <Sliders className="w-3.5 h-3.5 text-coastal-sage" />
-            Application Layout
-          </span>
-          <div className="grid grid-cols-3 gap-1.5">
-            {[
-              { id: 'immersive', label: 'Immersive', sub: 'Floating' },
-              { id: 'grid', label: 'Dashboard', sub: 'Flex-Grid' },
-              { id: 'split', label: 'Split Screen', sub: 'Classic' },
-            ].map(({ id, label, sub }) => {
-              const isActive = layoutMode === id;
-              return (
-                <button
-                  key={id}
-                  onClick={() => {
-                    setLayoutMode(id);
-                    setIsLeftCollapsed(false);
-                  }}
-                  className={`relative group p-2 rounded-xl border transition-all cursor-pointer flex flex-col items-center justify-center gap-0.5 shadow-md text-center ${
-                    isActive
-                      ? 'border-coastal-sage/90 bg-coastal-teal/20 scale-[1.02] shadow-coastal-sage/10 font-bold text-coastal-light'
-                      : 'border-coastal-teal/20 bg-coastal-forest/10 hover:border-coastal-teal/50 hover:bg-coastal-forest/20 font-normal text-coastal-light/65'
-                  }`}
-                >
-                  <span className="text-[11.5px] leading-tight font-bold">{label}</span>
-                  <span className="text-[8.5px] opacity-60 font-light">{sub}</span>
-                </button>
-              );
-            })}
-          </div>
-          <span className="text-[10px] text-coastal-light/40 leading-normal font-sans font-light mt-0.5">
-            {layoutMode === 'immersive' && "Full-bleed map canvas with floating frosted-glass telemetry panel"}
-            {layoutMode === 'grid' && "Map canvas locked into dedicated central column side-by-side with sidebar"}
-            {layoutMode === 'split' && "Fixed top header bar, left full-height sidebar, and responsive right canvas"}
-          </span>
-        </div>
-
-        <Toggle 
-          label="Technical Annotations"
-          checked={showAnnotations}
-          onChange={setShowAnnotations}
-          activeIcon={<Tag className="w-3.5 h-3.5 text-coastal-sage animate-pulse" />}
-          inactiveIcon={<Tag className="w-3.5 h-3.5 text-coastal-light/45" />}
-          description="SVG vector paths and scientific label overlays"
-        />
-
-        <Toggle 
-          label="Developer Mode HUD"
-          checked={isDevMode}
-          onChange={setIsDevMode}
-          activeIcon={<Compass className="w-3.5 h-3.5 text-coastal-sage animate-pulse" />}
-          inactiveIcon={<Compass className="w-3.5 h-3.5 text-coastal-light/45" />}
-          description="Draw grid overlay and capture exact normalized coordinate clicks"
-        />
-      </div>
-
-      <span className="h-px bg-coastal-teal/15 w-full" />
-
-      {/* Canvas Integration Mode Selector */}
-      <div className="flex flex-col gap-2 pointer-events-auto">
-        <span className="text-[11px] text-coastal-sage font-sans uppercase tracking-widest font-bold select-none flex items-center gap-1.5">
-          <Layers className="w-3.5 h-3.5 text-coastal-sage" />
-          Canvas Integration Mode
-        </span>
-        <div className="flex flex-col gap-1.5">
-          {[
-            { id: 'drafting-grid', label: 'Drafting Table Grid', sub: 'Blueprint framing & margins' },
-            { id: 'seamless-bleed', label: 'Seamless Bleed', sub: 'Infinite boundary blending' },
-            { id: 'autofocus-pan', label: 'Autofocus Pan', sub: 'Cover fit + cursor autopan' },
-          ].map(({ id, label, sub }) => {
-            const isActive = canvasIntegration === id;
-            return (
-              <button
-                key={id}
-                onClick={() => {
-                  setCanvasIntegration(id);
-                  if (id === 'autofocus-pan') {
-                    setSqueezeMitigation('focal-width');
-                  } else {
-                    setSqueezeMitigation('none');
-                  }
-                }}
-                className={`relative group p-2.5 rounded-xl border transition-all cursor-pointer flex flex-col items-start justify-center gap-0.5 shadow-md ${
-                  isActive
-                    ? 'border-coastal-sage/90 bg-coastal-teal/20 scale-[1.02] shadow-coastal-sage/10 font-bold text-coastal-light'
-                    : 'border-coastal-teal/20 bg-coastal-forest/10 hover:border-coastal-teal/50 hover:bg-coastal-forest/20 font-normal text-coastal-light/65'
-                }`}
-              >
-                <span className="text-[11.5px] leading-tight font-bold">{label}</span>
-                <span className="text-[9px] opacity-60 font-light">{sub}</span>
-              </button>
-            );
-          })}
-        </div>
-        {/* Real-time mechanical description */}
-        <div className="p-2.5 rounded-xl border border-coastal-teal/15 bg-coastal-dark/30 text-[10px] text-coastal-light/50 leading-normal font-sans font-light mt-1">
-          {canvasIntegration === 'drafting-grid' && (
-            <span>
-              <strong>Drafting Table Grid:</strong> The fixed-aspect image is framed inside a cartographic double border sitting on an infinite, theme-coordinated scientific blueprint grid. Safe, fully readable margins on all devices.
-            </span>
-          )}
-          {canvasIntegration === 'seamless-bleed' && (
-            <span>
-              <strong>Seamless Bleed:</strong> Uses color matching and a broad radial boundary vignette to blend the image's edges into the screen background. Gives the illusion of an infinite, borderless drawing.
-            </span>
-          )}
-          {canvasIntegration === 'autofocus-pan' && (
-            <span>
-              <strong>Autofocus Pan:</strong> Scales the canvas to fill the screen, cropping overflow. Moving your mouse to the edges pans smoothly to reveal margins. Centering is automatically locked when examining details.
-            </span>
-          )}
-        </div>
-      </div>
-
-      <span className="h-px bg-coastal-teal/15 w-full" />
-
-      {/* Theme Selector */}
-      <div className="flex flex-col gap-2 pointer-events-auto">
-        <span className="text-[11px] text-coastal-sage font-sans uppercase tracking-widest font-bold select-none">
-          Ecosystem Palette
-        </span>
-        <div className="grid grid-cols-2 gap-2">
-          {THEMES.map((t) => {
-            const isActive = theme === t.id;
-            return (
-              <button
-                key={t.id}
-                onClick={() => setTheme(t.id)}
-                className={`relative group p-2 rounded-xl border transition-all cursor-pointer flex items-center gap-2.5 shadow-md ${
-                  isActive 
-                    ? 'border-coastal-sage/90 bg-coastal-teal/20 scale-[1.02] shadow-coastal-sage/10' 
-                    : 'border-coastal-teal/20 bg-coastal-forest/10 hover:border-coastal-teal/50 hover:bg-coastal-forest/20'
-                }`}
-              >
-                <div className="flex -space-x-1.5 shrink-0">
-                  <div className={`w-3.5 h-3.5 rounded-full ${t.primary} border border-coastal-dark/30`} />
-                  <div className={`w-3.5 h-3.5 rounded-full ${t.secondary} border border-coastal-dark/30`} />
-                </div>
-                <span className={`text-[12px] font-sans truncate ${isActive ? 'text-coastal-light font-bold' : 'text-coastal-light/65 font-normal'}`}>
-                  {t.name}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-
-  // Horizontal timeline steps renderer
-  const renderTimelineSteps = () => {
-    const steps = getTimelineSteps();
-    return (
-      <div className="flex items-center gap-3 md:gap-6 lg:gap-8 justify-between flex-grow">
-        {steps.map((step, idx) => {
-          const isLast = idx === 2;
-          const isCompleted = step.status === 'completed';
-          const isActive = step.status === 'active';
-          return (
-            <div key={idx} className="flex items-center gap-3 md:gap-6 lg:gap-8 select-none flex-grow justify-between">
-              <div className="flex items-center gap-2 md:gap-3">
-                <div
-                  onClick={step.onClick || undefined}
-                  className={`w-4.5 h-4.5 md:w-5.5 md:h-5.5 rounded-full border flex items-center justify-center transition-all duration-300 shrink-0 ${
-                    isCompleted
-                      ? 'bg-gradient-to-br from-coastal-teal to-coastal-forest border-coastal-sage cursor-pointer hover:scale-110 active:scale-95 shadow-md shadow-coastal-teal/20'
-                      : isActive
-                        ? 'bg-coastal-dark border-coastal-sage border-2 shadow-lg shadow-coastal-sage/35 scale-105'
-                        : 'bg-transparent border-dashed border-coastal-teal/30 cursor-not-allowed'
-                  }`}
-                >
-                  {isCompleted ? (
-                    <span className="w-1 md:w-1.5 h-1 md:h-1.5 bg-white rounded-full" />
-                  ) : isActive ? (
-                    <motion.div
-                      className="w-1 md:w-1.5 h-1 md:h-1.5 bg-coastal-sage rounded-full"
-                      animate={{ scale: [0.8, 1.2, 0.8] }}
-                      transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
-                    />
-                  ) : (
-                    <span className="w-0.5 h-0.5 bg-coastal-teal/25 rounded-full" />
-                  )}
-                </div>
-                <div className="flex flex-col justify-start">
-                  {step.onClick ? (
-                    <button
-                      onClick={step.onClick}
-                      className={`text-left font-sans text-[11px] md:text-[13px] font-bold transition-colors tracking-wide cursor-pointer leading-tight whitespace-nowrap ${
-                        isCompleted ? 'text-coastal-light/95 hover:text-coastal-light' : isActive ? 'text-coastal-sage font-extrabold' : 'text-coastal-light/40 cursor-default'
-                      }`}
-                    >
-                      {step.title}
-                    </button>
-                  ) : (
-                    <span className={`font-sans text-[11px] md:text-[13px] font-bold tracking-wide leading-tight whitespace-nowrap ${
-                      isActive ? 'text-coastal-sage font-extrabold' : 'text-coastal-light/40'
-                    }`}>
-                      {step.title}
-                    </span>
-                  )}
-                  <span className={`hidden sm:block text-[9px] md:text-[10px] font-sans font-light leading-none mt-0.5 md:mt-1 ${
-                    isActive ? 'text-coastal-light/80' : 'text-coastal-light/35'
-                  }`}>
-                    {step.subtitle}
-                  </span>
-                </div>
-              </div>
-              {!isLast && (
-                <ChevronRight className={`w-3.5 h-3.5 md:w-4 h-4 shrink-0 transition-colors duration-300 ${
-                  isCompleted ? 'text-coastal-teal' : 'text-coastal-teal/20'
-                }`} />
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
-  };
-
-  // Helper to render shared header content inside both header styles
-  const renderHeaderInner = (isSplitHeader = false) => (
-    <>
-      {/* Compact logo on the far left of top bar */}
-      <div className="flex items-center gap-2.5 shrink-0 border-r border-coastal-teal/20 pr-4 mr-2 select-none">
-        <div className="p-1.5 bg-gradient-to-br from-coastal-teal to-coastal-forest rounded-lg border border-coastal-sage/20">
-          <Compass className="w-3.5 h-3.5 text-coastal-light" />
-        </div>
-        <span className="text-[14px] font-bold tracking-tight text-coastal-light font-display whitespace-nowrap">Coastal Canvas</span>
-      </div>
-
-      {/* Breadcrumb steps */}
-      <div className="flex-grow">
-        {renderTimelineSteps()}
-      </div>
-
-      {/* Settings gear icon on far right */}
-      <div className="shrink-0 border-l border-coastal-teal/20 pl-4 ml-2 relative select-none">
-        <button
-          onClick={() => setShowSettingsOverlay(v => !v)}
-          className={`flex items-center justify-center p-2.5 rounded-xl border transition-all cursor-pointer ${
-            showSettingsOverlay
-              ? 'bg-coastal-teal/20 border-coastal-sage text-coastal-sage'
-              : 'bg-coastal-forest/20 border-coastal-teal/25 hover:border-coastal-sage/50 text-coastal-light/60 hover:text-coastal-sage'
-          }`}
-          title="Control Settings"
-        >
-          {isAudioPlaying ? <Equalizer /> : <Sliders className="w-4 h-4" />}
-        </button>
-      </div>
-    </>
-  );
-
-  const isSplit = layoutMode === 'split';
-
-  const containerClasses = isSplit
-    ? 'w-screen h-screen overflow-hidden bg-coastal-dark font-sans text-coastal-light relative select-none flex flex-col'
-    : `w-screen h-screen overflow-hidden bg-coastal-dark font-sans text-coastal-light relative select-none ${!isFloating ? 'flex flex-row' : ''}`;
+  const isTheater = layoutMode === "theater-mode";
 
   return (
-    <div className={containerClasses} data-theme={theme}>
-      {isSplit ? (
-        <>
-          {/* ── Static Full-width Header Bar for Split Screen Mode ── */}
-          <header className="relative bg-coastal-dark/85 backdrop-blur-2xl px-6 py-4 border-b border-coastal-teal/20 shadow-lg flex items-center select-none pointer-events-auto w-full justify-between gap-4 shrink-0 z-40">
-            {renderHeaderInner(true)}
-          </header>
+    <div className="w-screen h-screen bg-coastal-dark font-sans text-coastal-light relative select-none flex flex-col overflow-hidden" data-theme={theme}>
+      
+      {/* ══ Unified Top Chrome: App Header + Wayfinding HUD row ══
+           Both rows live ABOVE the workspace — canvas always starts below. */}
+      <div className="w-full bg-coastal-dark/95 pointer-events-auto select-none font-sans shrink-0 z-45 border-b border-coastal-teal/20">
 
-          {/* ── Main Viewport Area Under Header ── */}
-          <div className="flex flex-row flex-grow w-full overflow-hidden relative">
-            <SidebarDrawer
-              isOpen={!isImmersive || currentLevel === 2 || squeezeMitigation === 'immersive-overlay'}
-              node={activeSpecimen}
-              layoutMode={squeezeMitigation === 'immersive-overlay' ? 'immersive' : layoutMode}
-              isLeftCollapsed={isLeftCollapsed}
-              setIsLeftCollapsed={setIsLeftCollapsed}
-              activeEcoKey={selectedEcoKey}
-            />
-
-            <div className="flex-grow h-full relative overflow-hidden bg-coastal-dark">
-              <SpatialCanvas
-                data={activeData}
-                showBeacons={showBeacons}
-                motionBlur={motionBlur}
-                showAnnotations={showAnnotations}
-                squeezeMitigation={squeezeMitigation}
-                theme={theme}
-                canvasIntegration={canvasIntegration}
-              />
-
-              {/* ── Left Detailed Panel Expand Badge ── */}
-              <AnimatePresence>
-                {isLeftCollapsed && (!isImmersive || currentLevel === 2 || squeezeMitigation === 'immersive-overlay') && (
-                  <motion.button
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    onClick={() => setIsLeftCollapsed(false)}
-                    className="absolute left-6 top-6 z-45 pointer-events-auto bg-coastal-dark/80 backdrop-blur-md p-3 rounded-xl border border-coastal-teal/35 hover:border-coastal-sage cursor-pointer shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
-                    title={currentLevel === 2 ? "Expand Specimen Details" : "Expand Telemetry Panel"}
-                  >
-                    <Sparkles className="w-5 h-5 text-coastal-sage animate-pulse" />
-                  </motion.button>
-                )}
-              </AnimatePresence>
+        {/* Row 1: Branding + Settings */}
+        <div className="max-w-[1300px] mx-auto w-full px-6 md:px-12 lg:px-20 flex items-center justify-between py-4">
+          {/* Left: Branding */}
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-coastal-teal to-coastal-forest rounded border border-coastal-sage/20">
+              <Compass className="w-5 h-5 text-coastal-light animate-spin-slow" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[20px] font-extrabold tracking-tight text-coastal-light uppercase leading-none">
+                Coastal Canvas
+              </span>
+              <span className="text-[12px] text-coastal-sage uppercase tracking-wider font-semibold mt-1">
+                Ecosystem Research Deck
+              </span>
             </div>
           </div>
-        </>
-      ) : (
-        <>
-          <SidebarDrawer
-            isOpen={!isImmersive || currentLevel === 2 || squeezeMitigation === 'immersive-overlay'}
-            node={activeSpecimen}
-            layoutMode={squeezeMitigation === 'immersive-overlay' ? 'immersive' : layoutMode}
-            isLeftCollapsed={isLeftCollapsed}
-            setIsLeftCollapsed={setIsLeftCollapsed}
-            activeEcoKey={selectedEcoKey}
-          />
 
-          <div className={!isFloating ? 'flex-grow h-full relative overflow-hidden' : 'absolute inset-0 w-full h-full'}>
+          {/* Right: Settings button */}
+          <button
+            onClick={() => setShowSettings(v => !v)}
+            className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-center justify-center gap-2 ${
+              showSettings
+                ? 'bg-coastal-teal/25 border-coastal-sage text-coastal-sage'
+                : 'bg-coastal-forest/20 border-coastal-teal/20 text-coastal-light/60 hover:text-coastal-sage hover:border-coastal-sage/40 hover:scale-[1.01] active:scale-[0.99]'
+            }`}
+            title="Canvas Settings"
+          >
+            {isAudioPlaying ? (
+              <div className="flex items-end gap-[2px] h-3.5 w-3.5 shrink-0 overflow-hidden select-none mb-[1px]">
+                {[...Array(3)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="w-[2px] bg-coastal-sage rounded-full"
+                    animate={{ height: ["2px", "12px", "2px"] }}
+                    transition={{ duration: 0.5 + i * 0.15, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+                  />
+                ))}
+              </div>
+            ) : <Sliders className="w-5 h-5" />}
+            <span className="text-[14px] font-sans font-bold uppercase tracking-wider pr-1">Settings</span>
+          </button>
+        </div>
+
+        {/* Row 2: HUD Controls + Breadcrumb trail — no border-top, seamlessly continues */}
+        <div className="border-t border-coastal-teal/10">
+          <div className="max-w-[1300px] mx-auto w-full px-3 sm:px-6 md:px-12 lg:px-20 flex items-center gap-3 py-2">
+
+            {/* Camera HUD pill */}
+            <div className="flex flex-row bg-coastal-teal/10 rounded-xl border border-coastal-teal/20 p-0.5 shrink-0 items-center gap-0">
+              <button
+                onClick={() => { resetCamera(); }}
+                className="p-1.5 rounded-lg text-coastal-light/70 hover:text-coastal-sage hover:bg-coastal-forest/20 transition-all cursor-pointer flex items-center justify-center focus:outline-none"
+                title="Home – Level 0 baseline"
+              >
+                <Home className="w-4 h-4" />
+              </button>
+              <span className="w-px h-4 bg-coastal-teal/20 shrink-0" />
+              <button
+                onClick={() => {
+                  if (camera.level === 0) resetCamera();
+                  else if (camera.level === 1 && activeSystem) focusNode(activeSystem, 1);
+                  else if (camera.level === 2 && activeSpecimen) focusNode(activeSpecimen, 2);
+                }}
+                className="p-1.5 rounded-lg text-coastal-light/70 hover:text-coastal-sage hover:bg-coastal-forest/20 transition-all cursor-pointer flex items-center justify-center focus:outline-none"
+                title="Recenter current level"
+              >
+                <Locate className="w-4 h-4" />
+              </button>
+              <span className="w-px h-4 bg-coastal-teal/20 shrink-0" />
+              <button
+                onClick={() => setCamera(prev => ({ ...prev, z: Math.max(1, prev.z - 0.5) }))}
+                className="p-1.5 rounded-lg text-coastal-light/70 hover:text-coastal-sage hover:bg-coastal-forest/20 transition-all cursor-pointer flex items-center justify-center focus:outline-none"
+                title="Zoom out"
+              >
+                <ZoomOut className="w-4 h-4" />
+              </button>
+              <span className="w-px h-4 bg-coastal-teal/20 shrink-0" />
+              <button
+                onClick={() => setCamera(prev => ({ ...prev, z: Math.min(8, prev.z + 0.5) }))}
+                className="p-1.5 rounded-lg text-coastal-light/70 hover:text-coastal-sage hover:bg-coastal-forest/20 transition-all cursor-pointer flex items-center justify-center focus:outline-none"
+                title="Zoom in"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Breadcrumb trail — min-w-0 + truncate ensures responsive truncation */}
+            <div className="flex items-center gap-1.5 min-w-0 flex-1 overflow-hidden">
+              {/* Level 0 */}
+              <button
+                onClick={() => triggerReset()}
+                className={`text-[13px] font-bold transition-all cursor-pointer flex items-center gap-1.5 min-w-0 hover:text-coastal-sage leading-none shrink ${
+                  camera.level === 0 ? 'text-coastal-sage font-extrabold' : 'text-coastal-light/55 font-semibold'
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full shrink-0 ${camera.level === 0 ? 'bg-coastal-sage' : 'bg-coastal-teal/60'}`} />
+                <span className="truncate">{activeEco.name}</span>
+              </button>
+
+              {/* Level 1 */}
+              {camera.level >= 1 && activeSystem && (
+                <>
+                  <span className="text-[11px] text-coastal-teal/35 font-mono shrink-0">/</span>
+                  <button
+                    onClick={() => focusNode(activeSystem, 1)}
+                    className={`text-[13px] font-bold transition-all cursor-pointer flex items-center gap-1.5 min-w-0 hover:text-coastal-sage leading-none shrink ${
+                      camera.level === 1 ? 'text-coastal-sage font-extrabold' : 'text-coastal-light/55 font-semibold'
+                    }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${camera.level === 1 ? 'bg-coastal-sage' : 'bg-coastal-teal/60'}`} />
+                    <span className="truncate">{activeSystem.title}</span>
+                  </button>
+                </>
+              )}
+
+              {/* Level 2 */}
+              {camera.level === 2 && activeSpecimen && (
+                <>
+                  <span className="text-[11px] text-coastal-teal/35 font-mono shrink-0">/</span>
+                  <div className="text-[13px] font-extrabold text-coastal-sage flex items-center gap-1.5 min-w-0 leading-none shrink">
+                    <span className="w-2 h-2 rounded-full bg-coastal-sage shrink-0" />
+                    <span className="truncate">{activeSpecimen.title}</span>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Depth indicator */}
+            <span className="text-[10px] text-coastal-light/30 font-mono shrink-0 uppercase tracking-wider hidden md:inline">
+              L{camera.level}
+            </span>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── Sub-Header Workspace Container ── */}
+      <div className={`w-full flex-grow relative flex ${
+        isTheater ? 'flex-col overflow-y-auto scrollbar-custom' : 'flex-row overflow-hidden'
+      }`}>
+        
+        {/* ── Main Canvas Column ── */}
+        <div className={`relative bg-coastal-dark flex flex-col justify-start shrink-0 ${
+          isTheater ? 'w-full' : 'flex-grow h-full overflow-hidden'
+        }`}>
+          
+
+
+          {/* ── Spatial Canvas Sheet Container ── */}
+          <div className={`w-full relative overflow-hidden ${
+            isTheater 
+              ? 'h-[50vh] min-h-[535px] max-h-[580px] border-b border-coastal-teal/20' 
+              : 'flex-grow'
+          }`}>
             <SpatialCanvas
               data={activeData}
               showBeacons={showBeacons}
               motionBlur={motionBlur}
               showAnnotations={showAnnotations}
-              squeezeMitigation={squeezeMitigation}
               theme={theme}
               canvasIntegration={canvasIntegration}
             />
+          </div>
 
-            {/* ── Floating Top Bar ── */}
-            <div className="absolute top-8 z-40 left-8 right-8">
-              <div className="relative bg-coastal-dark/85 backdrop-blur-2xl px-4 py-2.5 md:px-8 md:py-3.5 rounded-2xl border border-coastal-teal/35 shadow-2xl flex items-center select-none pointer-events-auto w-full justify-between gap-4">
-                {renderHeaderInner(false)}
-              </div>
-            </div>
-
-            {/* ── Left Detailed Panel Expand Badge ── */}
+          {/* ── Floating Science Panel Expand Badge ── */}
+          {!isTheater && (
             <AnimatePresence>
-              {isLeftCollapsed && (!isImmersive || currentLevel === 2 || squeezeMitigation === 'immersive-overlay') && (
+              {isCollapsed && (
                 <motion.button
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  onClick={() => setIsLeftCollapsed(false)}
-                  className="absolute left-6 top-6 z-45 pointer-events-auto bg-coastal-dark/80 backdrop-blur-md p-3 rounded-xl border border-coastal-teal/35 hover:border-coastal-sage cursor-pointer shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center"
-                  title={currentLevel === 2 ? "Expand Specimen Details" : "Expand Telemetry Panel"}
+                  onClick={() => setIsCollapsed(false)}
+                  className="absolute right-6 top-6 z-45 pointer-events-auto bg-coastal-dark/80 backdrop-blur-md p-3 rounded-xl border border-coastal-teal/35 hover:border-coastal-sage cursor-pointer shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center animate-bounce-subtle"
+                  title="Expand Science Panel"
                 >
-                  <Sparkles className="w-5 h-5 text-coastal-sage animate-pulse" />
+                  <Sparkles className="w-5 h-5 text-coastal-sage" />
                 </motion.button>
               )}
             </AnimatePresence>
-          </div>
-        </>
-      )}
+          )}
+        </div>
 
-      {/* ══════════════════════════════════════════════════════════ */}
-      {/* SETTINGS OVERLAY                                          */}
-      {/* ══════════════════════════════════════════════════════════ */}
-      <AnimatePresence>
-        {showSettingsOverlay && (
-          <motion.div
-            ref={settingsOverlayRef}
-            initial={{ opacity: 0, y: -12, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -12, scale: 0.96 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-            className="absolute top-24 right-8 z-50 w-80 bg-coastal-dark/95 backdrop-blur-2xl rounded-2xl border border-coastal-teal/35 shadow-2xl overflow-hidden pointer-events-auto"
-          >
-            {/* Overlay header */}
-            <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-coastal-teal/20">
-              <div className="flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-coastal-sage" />
-                <span className="text-[12px] text-coastal-sage font-sans uppercase tracking-widest font-bold">
-                  Control Settings
-                </span>
-              </div>
-              <button
-                onClick={() => setShowSettingsOverlay(false)}
-                className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-coastal-forest/40 text-coastal-light/50 hover:text-coastal-light transition-all cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-            {/* Overlay body */}
-            <div className="px-5 pb-5 pt-3 overflow-y-auto max-h-[80vh] scrollbar-custom">
-              {renderSettingsBody()}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {/* ── Dynamic control deck right sidebar or inline stacked details ── */}
+        <SidebarDrawer
+          isOpen={isTheater ? true : !isCollapsed}
+          node={activeNode}
+          isCollapsed={isTheater ? false : isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          activeEcoKey={selectedEcoKey}
+          level={currentLevel}
+          handleEcosystemChange={handleEcosystemChange}
+          showBeacons={showBeacons}
+          setShowBeacons={setShowBeacons}
+          motionBlur={motionBlur}
+          setMotionBlur={setMotionBlur}
+          showAnnotations={showAnnotations}
+          setShowAnnotations={setShowAnnotations}
+          isAudioPlaying={isAudioPlaying}
+          setIsAudioPlaying={setIsAudioPlaying}
+          theme={theme}
+          setTheme={setTheme}
+          showSettings={showSettings}
+          setShowSettings={setShowSettings}
+          layoutMode={layoutMode}
+        />
+      </div>
 
       {/* ── Interactive Helper Onboarding Tooltip ─────────────── */}
       <AnimatePresence>
@@ -751,17 +415,197 @@ function AppContent() {
             className="absolute bottom-28 left-1/2 -translate-x-1/2 text-center pointer-events-none z-40"
           >
             <div className="pointer-events-auto bg-coastal-dark/85 backdrop-blur-2xl px-6 py-3 rounded-full border border-coastal-teal/35 shadow-2xl flex items-center gap-4">
-              <p className="text-coastal-light font-sans text-[13px] font-semibold tracking-widest uppercase flex items-center gap-2.5 justify-center">
+              <p className="text-coastal-light font-sans text-[15px] font-semibold tracking-widest uppercase flex items-center gap-2.5 justify-center">
                 <span className="w-1.5 h-1.5 rounded-full bg-coastal-sage animate-ping" />
                 Click a hotspot to dive into the ecosystem
               </p>
               <button
                 onClick={dismissHelper}
-                className="px-3 py-1 text-[10px] font-sans font-bold uppercase tracking-wider text-coastal-sage hover:text-coastal-light border border-coastal-teal/30 hover:border-coastal-sage/60 bg-coastal-forest/20 hover:bg-coastal-forest/40 rounded-full transition-all cursor-pointer"
+                className="px-3 py-1.5 text-[12.5px] font-sans font-bold uppercase tracking-wider text-coastal-sage hover:text-coastal-light border border-coastal-teal/30 hover:border-coastal-sage/60 bg-coastal-forest/20 hover:bg-coastal-forest/40 rounded-full transition-all cursor-pointer"
               >
                 Dismiss
               </button>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Settings Modal Overlay ── */}
+      <AnimatePresence>
+        {showSettings && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowSettings(false)}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-md p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-[480px] bg-coastal-dark border border-coastal-teal/30 p-6 rounded-2xl shadow-2xl flex flex-col gap-5 pointer-events-auto relative"
+            >
+              {/* Header with Close Button */}
+              <div className="flex items-center justify-between border-b border-coastal-teal/15 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <Sliders className="w-5 h-5 text-coastal-sage" />
+                  <h3 className="text-[18px] font-extrabold uppercase text-coastal-light tracking-wide">
+                    Tactile Drafting Settings
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="p-1.5 rounded-full hover:bg-coastal-forest/30 border border-transparent hover:border-coastal-teal/20 text-coastal-light/60 hover:text-coastal-light transition-all cursor-pointer flex items-center justify-center"
+                  title="Close Settings"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Toggles List */}
+              <div className="flex flex-col gap-1.5">
+                <Toggle 
+                  label="Theater Screen Layout"
+                  checked={layoutMode === "theater-mode"}
+                  onChange={(checked) => setLayoutMode(checked ? "theater-mode" : "split-desk")}
+                  activeIcon={<Tv className="w-5 h-5 text-coastal-sage" />}
+                  inactiveIcon={<Tv className="w-5 h-5 text-coastal-light/45" />}
+                  description="Horizontal stack (YouTube theater style)"
+                />
+                <Toggle 
+                  label="Hotspot Beacons"
+                  checked={showBeacons}
+                  onChange={setShowBeacons}
+                  activeIcon={<Eye className="w-5 h-5 text-coastal-sage" />}
+                  inactiveIcon={<EyeOff className="w-5 h-5 text-coastal-light/45" />}
+                  description="Flashing map hotspots & ripple pulses"
+                />
+                <Toggle 
+                  label="Transition Motion Blur"
+                  checked={motionBlur}
+                  onChange={setMotionBlur}
+                  activeIcon={<Sparkles className="w-5 h-5 text-coastal-sage" />}
+                  inactiveIcon={<Sparkles className="w-5 h-5 text-coastal-light/45" />}
+                  description="Cinematic Gaussian transitions"
+                />
+                <Toggle 
+                  label="Nature Soundtrack"
+                  checked={isAudioPlaying}
+                  onChange={setIsAudioPlaying}
+                  activeIcon={<Volume2 className="w-5 h-5 text-coastal-sage" />}
+                  inactiveIcon={<VolumeX className="w-5 h-5 text-coastal-light/45" />}
+                  description="Loopable ecosystem soundscapes"
+                />
+                <Toggle 
+                  label="Technical Annotations"
+                  checked={showAnnotations}
+                  onChange={setShowAnnotations}
+                  activeIcon={<Tag className="w-5 h-5 text-coastal-sage" />}
+                  inactiveIcon={<Tag className="w-5 h-5 text-coastal-light/45" />}
+                  description="Vector currents & flow annotations"
+                />
+                <Toggle 
+                  label="Developer HUD"
+                  checked={isDevMode}
+                  onChange={setIsDevMode}
+                  activeIcon={<Compass className="w-5 h-5 text-coastal-sage" />}
+                  inactiveIcon={<Compass className="w-5 h-5 text-coastal-light/45" />}
+                  description="Capture precise click coordinates"
+                />
+              </div>
+
+              <span className="h-px bg-coastal-teal/10 w-full" />
+
+              {/* Ecosystem Baseline Switcher */}
+              <div className="flex flex-col gap-2.5">
+                <span className="text-[12.5px] text-coastal-sage font-sans uppercase tracking-widest font-bold">
+                  Ecosystem Baseline Region
+                </span>
+                <div className="grid grid-cols-2 gap-2.5 p-1 bg-coastal-dark/20 border border-coastal-teal/15 rounded-xl">
+                  {Object.entries(ECOSYSTEMS).map(([key, eco]) => {
+                    const isActive = selectedEcoKey === key;
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => handleEcosystemChange(key)}
+                        className={`py-2 text-[14px] font-sans rounded-lg transition-all cursor-pointer shadow-sm text-center font-bold ${
+                          isActive
+                            ? 'bg-[#dee8e8] text-[#161616] border border-coastal-teal/30 scale-[1.01]'
+                            : 'text-coastal-light/50 hover:text-coastal-light hover:bg-coastal-forest/10 font-normal'
+                        }`}
+                      >
+                        {eco.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <span className="h-px bg-coastal-teal/10 w-full" />
+
+              {/* Canvas Integration Mode Selector */}
+              <div className="flex flex-col gap-2.5">
+                <span className="text-[12.5px] text-coastal-sage font-sans uppercase tracking-widest font-bold">
+                  Canvas Integration Style
+                </span>
+                <div className="grid grid-cols-3 gap-2.5 p-1 bg-coastal-dark/20 border border-coastal-teal/15 rounded-xl">
+                  {[
+                    { id: "ambient-float", name: "Ambient Float" },
+                    { id: "full-bleed", name: "Full Bleed" },
+                    { id: "drafting-grid", name: "Draft Grid" }
+                  ].map((mode) => {
+                    const isActive = canvasIntegration === mode.id;
+                    return (
+                      <button
+                        key={mode.id}
+                        onClick={() => setCanvasIntegration(mode.id)}
+                        className={`py-2 text-[12px] font-sans rounded-lg transition-all cursor-pointer shadow-sm text-center font-bold ${
+                          isActive
+                            ? 'bg-[#dee8e8] text-[#161616] border border-coastal-teal/30 scale-[1.01]'
+                            : 'text-coastal-light/50 hover:text-coastal-light hover:bg-coastal-forest/10 font-normal'
+                        }`}
+                      >
+                        {mode.name}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <span className="h-px bg-coastal-teal/10 w-full" />
+
+              {/* Palette Selection Grid */}
+              <div className="flex flex-col gap-2.5">
+                <span className="text-[12.5px] text-coastal-sage font-sans uppercase tracking-widest font-bold">
+                  Draft Sheet Palette
+                </span>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {THEMES.map((t) => {
+                    const isActive = theme === t.id;
+                    return (
+                      <button
+                        key={t.id}
+                        onClick={() => setTheme(t.id)}
+                        className={`relative group p-2.5 rounded-xl border transition-all cursor-pointer flex items-center gap-2.5 shadow ${
+                          isActive 
+                            ? 'border-coastal-sage bg-coastal-teal/20 font-bold text-coastal-light scale-[1.01]' 
+                            : 'border-coastal-teal/20 bg-coastal-forest/10 hover:border-coastal-teal/50 hover:bg-coastal-forest/20 text-coastal-light/65 font-normal'
+                        }`}
+                      >
+                        <div className="flex -space-x-1 shrink-0">
+                          <div className={`w-4.5 h-4.5 rounded-full ${t.primary} border border-coastal-dark/35`} />
+                          <div className={`w-4.5 h-4.5 rounded-full ${t.secondary} border border-coastal-dark/35`} />
+                        </div>
+                        <span className="text-[14.5px] font-sans truncate ml-1">{t.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
