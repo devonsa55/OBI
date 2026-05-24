@@ -36,13 +36,19 @@
         "title": "The Atmosphere",
         "description": "Wind, fog, and winter storms driving coastal changes.",
         "targetZoomScale": 3,
-        "coordinates": { "x": 50, "y": 15 },
+        "coordinates": {
+          "x": 22.63,
+          "y": 10.07
+        },
         "children": [
           {
             "id": "spec-fog",
             "title": "The Summer Fog",
             "targetZoomScale": 6,
-            "coordinates": { "x": 48, "y": 20 },
+            "coordinates": {
+              "x": 48,
+              "y": 20
+            },
             "drawerContent": {
               "title": "Karl the Fog's Ecological Role",
               "tldr": "Summer fog is a vital source of moisture for dry coastal dune plants.",
@@ -90,13 +96,19 @@
         "title": "Ocean & Waves",
         "description": "Powerful currents and swells generated thousands of miles away.",
         "targetZoomScale": 3,
-        "coordinates": { "x": 25, "y": 60 },
+        "coordinates": {
+          "x": 25.85,
+          "y": 42.7
+        },
         "children": [
           {
             "id": "spec-swells",
             "title": "Wave Generation",
             "targetZoomScale": 6,
-            "coordinates": { "x": 20, "y": 65 },
+            "coordinates": {
+              "x": 20,
+              "y": 65
+            },
             "drawerContent": {
               "title": "The Mechanics of Ocean Beach Swells",
               "tldr": "Deep ocean floor valleys focus massive wave energy directly at the beach.",
@@ -145,14 +157,20 @@
         "bgImage": "assets/dunes-mid.webp",
         "description": "An active, shifting landscape of dunes, sandbars, and vegetation.",
         "targetZoomScale": 3,
-        "coordinates": { "x": 65, "y": 50 },
+        "coordinates": {
+          "x": 38.34,
+          "y": 32.33
+        },
         "children": [
           {
             "id": "spec-dune-veg",
             "title": "Dune Stabilization",
             "bgImage": "assets/dune-veg-close.webp",
             "targetZoomScale": 6,
-            "coordinates": { "x": 70, "y": 45 },
+            "coordinates": {
+              "x": 70,
+              "y": 45
+            },
             "drawerContent": {
               "title": "How Plants Hold the Sand",
               "tldr": "Native plants act as natural anchors, keeping sand from blowing into the city.",
@@ -201,8 +219,15 @@
         "plateImage": "assets/plate-level1-aquatic.png",
         "description": "The resilient species that call this harsh environment home.",
         "targetZoomScale": 3,
-        "cameraTarget": { "x": 50, "y": 50, "z": 1.0 },
-        "coordinates": { "x": 75, "y": 70 },
+        "cameraTarget": {
+          "x": 50,
+          "y": 50,
+          "z": 1
+        },
+        "coordinates": {
+          "x": 36.64,
+          "y": 73.94
+        },
         "annotations": [
           {
             "id": "ann-current-flow",
@@ -227,8 +252,15 @@
             "title": "Bull Kelp Study",
             "bgImage": "assets/plate-level2-kelp.png",
             "targetZoomScale": 6,
-            "cameraTarget": { "x": 50, "y": 50, "z": 1.0 },
-            "coordinates": { "x": 65, "y": 75 },
+            "cameraTarget": {
+              "x": 50,
+              "y": 50,
+              "z": 1
+            },
+            "coordinates": {
+              "x": 65,
+              "y": 75
+            },
             "annotations": [
               {
                 "id": "ann-pneumatocyst",
@@ -292,13 +324,19 @@
         "title": "Human Stewardship",
         "description": "How we manage, restore, and protect these delicate systems.",
         "targetZoomScale": 3,
-        "coordinates": { "x": 45, "y": 80 },
+        "coordinates": {
+          "x": 62.85,
+          "y": 42.37
+        },
         "children": [
           {
             "id": "spec-dredging",
             "title": "Sand Management & Dredging",
             "targetZoomScale": 6,
-            "coordinates": { "x": 40, "y": 85 },
+            "coordinates": {
+              "x": 40,
+              "y": 85
+            },
             "drawerContent": {
               "title": "Recycling the Shipping Channel Sand",
               "tldr": "The Army Corps dredges sand from the Golden Gate channel and places it back onto the beach.",
