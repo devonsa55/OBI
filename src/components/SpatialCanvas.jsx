@@ -10,8 +10,19 @@ const transitionConfig = {
   mass: 0.9,
 };
 
-export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnotations, theme, canvasIntegration }) {
+export default function SpatialCanvas({ 
+  data, 
+  showBeacons, 
+  motionBlur, 
+  showAnnotations, 
+  theme, 
+  canvasIntegration,
+  onUpdateCoordinates,
+  onResetCoordinates,
+  hasOverrides
+}) {
   const { camera, setCamera, focusNode, resetCamera, isDevMode, logClickCoordinate, lastCoordinates } = useCamera();
+  const [copiedFullJson, setCopiedFullJson] = useState(false);
   const viewportRef = useRef(null);
   const containerRef = useRef(null);
   
@@ -486,6 +497,8 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
                     }}
                     showBeacons={showBeacons}
                     direction={direction}
+                    isDevMode={isDevMode}
+                    onDrag={(newX, newY) => onUpdateCoordinates && onUpdateCoordinates(node.id, newX, newY)}
                   />
                 );
               })}
@@ -570,27 +583,80 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
         </motion.div>
       </div>
 
-      {/* Dev coords overlay */}
+      {/* Dev coords & override layout manager overlay */}
       <AnimatePresence>
-        {isDevMode && lastCoordinates && (
+        {isDevMode && (
           <motion.div
             initial={{ opacity: 0, y: 30, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 30, scale: 0.9 }}
-            className="absolute bottom-6 right-6 bg-coastal-dark/95 backdrop-blur-md px-5 py-2.5 rounded-2xl border border-coastal-sage/50 shadow-2xl flex items-center gap-4 z-[9999] pointer-events-auto font-sans"
+            className="absolute bottom-6 right-6 bg-coastal-dark/95 backdrop-blur-md px-6 py-5 rounded-2xl border border-coastal-sage/40 shadow-2xl flex flex-col gap-4 z-[9999] pointer-events-auto font-sans w-[350px]"
           >
-            <div className="flex flex-col">
-              <span className="text-[9px] uppercase tracking-widest text-coastal-sage font-bold select-none">
-                Captured Coordinates
-              </span>
-              <span className="text-xs text-coastal-light font-mono select-all">
-                "coordinates": &#123; "x": {lastCoordinates.x.toFixed(1)}, "y": {lastCoordinates.y.toFixed(1)} &#125;
-              </span>
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase tracking-widest text-coastal-sage font-extrabold flex items-center gap-1.5 select-none">
+                  <span className="w-2 h-2 rounded-full bg-coastal-sage animate-ping" />
+                  Ecosystem Developer Panel
+                </span>
+                {hasOverrides && (
+                  <span className="text-[9px] text-emerald-400 bg-emerald-950/40 border border-emerald-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold select-none animate-pulse">
+                    Overrides Active
+                  </span>
+                )}
+              </div>
+              <p className="text-[12.5px] text-coastal-light/65 leading-normal select-none">
+                Drag any beacon on the canvas to visually adjust its position. Click the canvas to log standard XY coordinates.
+              </p>
             </div>
-            <div className="h-6 w-px bg-coastal-teal/20" />
-            <span className="text-[10px] text-coastal-teal font-medium uppercase tracking-wider select-none animate-pulse bg-coastal-teal/15 px-2.5 py-1 rounded-lg border border-coastal-teal/30">
-              Copied!
-            </span>
+
+            <div className="h-px bg-coastal-teal/15 w-full" />
+
+            {/* Display last captured coordinates */}
+            {lastCoordinates && (
+              <div className="flex flex-col gap-1.5 bg-coastal-dark/60 p-3 rounded-xl border border-coastal-teal/15">
+                <span className="text-[9px] uppercase tracking-widest text-coastal-light/45 font-bold select-none">
+                  Last Copied Coordinates
+                </span>
+                <span className="text-xs text-coastal-light font-mono select-all break-all">
+                  "coordinates": &#123; "x": {lastCoordinates.x.toFixed(1)}, "y": {lastCoordinates.y.toFixed(1)} &#125;
+                </span>
+              </div>
+            )}
+
+            {/* Development Action buttons */}
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  const jsonString = JSON.stringify(data, null, 2);
+                  navigator.clipboard?.writeText(jsonString)
+                    .then(() => {
+                      setCopiedFullJson(true);
+                      setTimeout(() => setCopiedFullJson(false), 2000);
+                    })
+                    .catch(err => console.error("Failed to copy full JSON:", err));
+                }}
+                className={`w-full py-2.5 px-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center border ${
+                  copiedFullJson
+                    ? 'bg-emerald-600 border-emerald-500 text-white shadow shadow-emerald-500/25'
+                    : 'bg-gradient-to-r from-coastal-teal/20 to-coastal-sage/20 border-coastal-teal/30 hover:border-coastal-sage text-coastal-light'
+                }`}
+              >
+                {copiedFullJson ? '✓ Copied Full JSON!' : 'Copy Full data.json'}
+              </button>
+
+              {hasOverrides && (
+                <button
+                  onClick={() => {
+                    if (confirm("Reset all visual beacon coordinates to defaults? This will clear your browser overrides.")) {
+                      onResetCoordinates && onResetCoordinates();
+                    }
+                  }}
+                  className="w-full py-2 px-4 rounded-xl text-xs font-semibold uppercase tracking-wider text-coastal-light/50 border border-coastal-teal/10 hover:text-coastal-light hover:border-coastal-teal/30 transition-all cursor-pointer bg-transparent"
+                >
+                  Reset to defaults
+                </button>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -599,11 +665,48 @@ export default function SpatialCanvas({ data, showBeacons, motionBlur, showAnnot
   );
 }
 
-function HotspotBeacon({ node, level, onClick, showBeacons, direction }) {
+function HotspotBeacon({ node, level, onClick, showBeacons, direction, isDevMode, onDrag }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const dragRef = useRef({ hasDragged: false });
 
   const initialScale = direction === 'down' ? 0.4 : 3.5;
   const exitScale = direction === 'down' ? 3.5 : 0.4;
+
+  const handlePointerDown = (e) => {
+    if (!isDevMode) return;
+    
+    e.stopPropagation();
+    e.preventDefault();
+    
+    const beaconEl = e.currentTarget;
+    const parentEl = beaconEl.parentElement;
+    if (!parentEl) return;
+    
+    const parentRect = parentEl.getBoundingClientRect();
+    setIsDragging(true);
+    dragRef.current.hasDragged = false;
+    
+    const handlePointerMove = (moveEvent) => {
+      dragRef.current.hasDragged = true;
+      const pctX = ((moveEvent.clientX - parentRect.left) / parentRect.width) * 100;
+      const pctY = ((moveEvent.clientY - parentRect.top) / parentRect.height) * 100;
+      
+      const newX = parseFloat(Math.max(0, Math.min(100, pctX)).toFixed(2));
+      const newY = parseFloat(Math.max(0, Math.min(100, pctY)).toFixed(2));
+      
+      onDrag && onDrag(newX, newY);
+    };
+    
+    const handlePointerUp = () => {
+      setIsDragging(false);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+    
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+  };
 
   return (
     <motion.div
@@ -611,7 +714,9 @@ function HotspotBeacon({ node, level, onClick, showBeacons, direction }) {
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: exitScale }}
       transition={transitionConfig}
-      className="absolute flex flex-col items-center justify-center cursor-pointer group z-20 pointer-events-auto"
+      className={`absolute flex flex-col items-center justify-center group z-20 pointer-events-auto select-none ${
+        isDevMode ? 'cursor-move' : 'cursor-pointer'
+      }`}
       style={{
         left: `${node.coordinates?.x}%`,
         top: `${node.coordinates?.y}%`,
@@ -619,8 +724,13 @@ function HotspotBeacon({ node, level, onClick, showBeacons, direction }) {
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onPointerDown={handlePointerDown}
       onClick={(e) => {
         e.stopPropagation();
+        if (dragRef.current.hasDragged) {
+          dragRef.current.hasDragged = false; // Reset
+          return;
+        }
         onClick();
       }}
     >
@@ -663,18 +773,18 @@ function HotspotBeacon({ node, level, onClick, showBeacons, direction }) {
 
         <div
           className={`w-8 h-8 rounded-full border-2 shadow-xl flex items-center justify-center transition-all duration-300 ${
-            isHovered
+            isHovered || isDragging
               ? 'scale-115 border-coastal-light shadow-coastal-sage/30 shadow-2xl'
               : 'border-coastal-light/80 shadow-md'
           } ${
             level === 0
               ? 'bg-gradient-to-br from-coastal-teal to-coastal-forest'
               : 'bg-gradient-to-br from-coastal-sage to-coastal-teal'
-          }`}
+          } ${isDragging ? 'ring-4 ring-coastal-sage/35 animate-pulse' : ''}`}
         >
           <motion.div
             className="w-2.5 h-2.5 bg-white rounded-full"
-            animate={isHovered ? { scale: [1, 1.4, 1] } : { scale: 1 }}
+            animate={isHovered || isDragging ? { scale: [1, 1.4, 1] } : { scale: 1 }}
             transition={{ repeat: Infinity, duration: 1, ease: 'easeInOut' }}
           />
         </div>

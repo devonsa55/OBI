@@ -64,8 +64,84 @@ const ECOSYSTEM_SOUNDS = {
 
 function AppContent() {
   const [selectedEcoKey, setSelectedEcoKey] = useState("ocean-beach");
+  
+  // Manage ecosystem data in state, initializing from localStorage overrides if present, otherwise default files
+  const [ecosystemsData, setEcosystemsData] = useState(() => {
+    try {
+      const saved = localStorage.getItem('obi-ecosystem-data-overrides');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.warn("Failed to load local storage overrides:", e);
+    }
+    return {
+      "ocean-beach": obData,
+      "florida-mangroves": mangroveData
+    };
+  });
+
+  const activeData = ecosystemsData[selectedEcoKey];
   const activeEco = ECOSYSTEMS[selectedEcoKey];
-  const activeData = activeEco.data;
+
+  const handleUpdateCoordinates = (nodeId, x, y) => {
+    setEcosystemsData(prev => {
+      const updated = JSON.parse(JSON.stringify(prev));
+      const currentEcoData = updated[selectedEcoKey];
+      
+      let found = false;
+      
+      // Search in Level 0 annotations
+      if (currentEcoData.level0.annotations) {
+        const ann = currentEcoData.level0.annotations.find(a => a.id === nodeId);
+        if (ann) {
+          ann.x = x;
+          ann.y = y;
+          found = true;
+        }
+      }
+      
+      // Search in Level 0 systems
+      if (!found && currentEcoData.level0.systems) {
+        for (const sys of currentEcoData.level0.systems) {
+          if (sys.id === nodeId) {
+            sys.coordinates = { x, y };
+            found = true;
+            break;
+          }
+          
+          // Search in system children
+          if (sys.children) {
+            const child = sys.children.find(c => c.id === nodeId);
+            if (child) {
+              child.coordinates = { x, y };
+              found = true;
+              break;
+            }
+          }
+        }
+      }
+      
+      // Save overrides to local storage for persistence
+      try {
+        localStorage.setItem('obi-ecosystem-data-overrides', JSON.stringify(updated));
+      } catch (e) {
+        console.error("Failed to save local storage overrides:", e);
+      }
+      
+      return updated;
+    });
+  };
+
+  const handleResetCoordinates = () => {
+    try {
+      localStorage.removeItem('obi-ecosystem-data-overrides');
+    } catch (e) {}
+    setEcosystemsData({
+      "ocean-beach": obData,
+      "florida-mangroves": mangroveData
+    });
+  };
 
   // 2D Spatial Camera Global Context Telemetry
   const { camera, setCamera, focusNode, resetCamera, isDevMode, setIsDevMode } = useCamera();
@@ -358,6 +434,9 @@ function AppContent() {
               showAnnotations={showAnnotations}
               theme={theme}
               canvasIntegration={canvasIntegration}
+              onUpdateCoordinates={handleUpdateCoordinates}
+              onResetCoordinates={handleResetCoordinates}
+              hasOverrides={localStorage.getItem('obi-ecosystem-data-overrides') !== null}
             />
           </div>
 
