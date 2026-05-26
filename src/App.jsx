@@ -416,16 +416,14 @@ function AppContent() {
         
         {/* ── Main Canvas Column ── */}
         <div className={`relative bg-coastal-dark flex flex-col justify-start shrink-0 ${
-          isTheater 
-            ? (currentLevel === 0 ? 'w-full flex-grow h-[calc(100vh-130px)]' : 'w-full') 
-            : 'flex-grow h-full overflow-hidden'
+          isTheater ? 'w-full' : 'flex-grow h-full overflow-hidden'
         }`}>
           
 
 
           {/* ── Spatial Canvas Sheet Container ── */}
           <div className={`w-full relative overflow-hidden ${
-            isTheater && currentLevel > 0
+            isTheater 
               ? 'aspect-[4/3] max-h-[52vh] min-h-[320px] md:max-h-[56vh] lg:max-h-[58vh] border-b border-coastal-teal/20' 
               : 'flex-grow'
           }`}>
@@ -462,31 +460,29 @@ function AppContent() {
         </div>
 
         {/* ── Dynamic control deck right sidebar or inline stacked details ── */}
-        {currentLevel > 0 && (
-          <SidebarDrawer
-            isOpen={isTheater ? true : !isCollapsed}
-            node={activeNode}
-            isCollapsed={isTheater ? false : isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-            activeEcoKey={selectedEcoKey}
-            level={currentLevel}
-            handleEcosystemChange={handleEcosystemChange}
-            showBeacons={showBeacons}
-            setShowBeacons={setShowBeacons}
-            motionBlur={motionBlur}
-            setMotionBlur={setMotionBlur}
-            showAnnotations={showAnnotations}
-            setShowAnnotations={setShowAnnotations}
-            isAudioPlaying={isAudioPlaying}
-            setIsAudioPlaying={setIsAudioPlaying}
-            theme={theme}
-            setTheme={setTheme}
-            showSettings={showSettings}
-            setShowSettings={setShowSettings}
-            layoutMode={layoutMode}
-            glossary={activeData.glossary}
-          />
-        )}
+        <SidebarDrawer
+          isOpen={isTheater ? true : !isCollapsed}
+          node={activeNode}
+          isCollapsed={isTheater ? false : isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          activeEcoKey={selectedEcoKey}
+          level={currentLevel}
+          handleEcosystemChange={handleEcosystemChange}
+          showBeacons={showBeacons}
+          setShowBeacons={setShowBeacons}
+          motionBlur={motionBlur}
+          setMotionBlur={setMotionBlur}
+          showAnnotations={showAnnotations}
+          setShowAnnotations={setShowAnnotations}
+          isAudioPlaying={isAudioPlaying}
+          setIsAudioPlaying={setIsAudioPlaying}
+          theme={theme}
+          setTheme={setTheme}
+          showSettings={showSettings}
+          setShowSettings={setShowSettings}
+          layoutMode={layoutMode}
+          glossary={activeData.glossary}
+        />
       </div>
 
       {/* ── Interactive Helper Onboarding Tooltip ─────────────── */}
