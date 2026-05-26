@@ -416,7 +416,9 @@ function AppContent() {
         
         {/* ── Main Canvas Column ── */}
         <div className={`relative bg-coastal-dark flex flex-col justify-start shrink-0 ${
-          isTheater ? 'w-full' : 'flex-grow h-full overflow-hidden'
+          isTheater 
+            ? (currentLevel === 0 ? 'w-full flex-grow h-[calc(100vh-130px)]' : 'w-full') 
+            : 'flex-grow h-full overflow-hidden'
         }`}>
           
 
