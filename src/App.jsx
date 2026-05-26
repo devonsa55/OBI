@@ -423,7 +423,7 @@ function AppContent() {
 
           {/* ── Spatial Canvas Sheet Container ── */}
           <div className={`w-full relative overflow-hidden ${
-            isTheater 
+            isTheater && currentLevel > 0
               ? 'h-[50vh] min-h-[535px] max-h-[580px] border-b border-coastal-teal/20' 
               : 'flex-grow'
           }`}>
@@ -460,28 +460,31 @@ function AppContent() {
         </div>
 
         {/* ── Dynamic control deck right sidebar or inline stacked details ── */}
-        <SidebarDrawer
-          isOpen={isTheater ? true : !isCollapsed}
-          node={activeNode}
-          isCollapsed={isTheater ? false : isCollapsed}
-          setIsCollapsed={setIsCollapsed}
-          activeEcoKey={selectedEcoKey}
-          level={currentLevel}
-          handleEcosystemChange={handleEcosystemChange}
-          showBeacons={showBeacons}
-          setShowBeacons={setShowBeacons}
-          motionBlur={motionBlur}
-          setMotionBlur={setMotionBlur}
-          showAnnotations={showAnnotations}
-          setShowAnnotations={setShowAnnotations}
-          isAudioPlaying={isAudioPlaying}
-          setIsAudioPlaying={setIsAudioPlaying}
-          theme={theme}
-          setTheme={setTheme}
-          showSettings={showSettings}
-          setShowSettings={setShowSettings}
-          layoutMode={layoutMode}
-        />
+        {currentLevel > 0 && (
+          <SidebarDrawer
+            isOpen={isTheater ? true : !isCollapsed}
+            node={activeNode}
+            isCollapsed={isTheater ? false : isCollapsed}
+            setIsCollapsed={setIsCollapsed}
+            activeEcoKey={selectedEcoKey}
+            level={currentLevel}
+            handleEcosystemChange={handleEcosystemChange}
+            showBeacons={showBeacons}
+            setShowBeacons={setShowBeacons}
+            motionBlur={motionBlur}
+            setMotionBlur={setMotionBlur}
+            showAnnotations={showAnnotations}
+            setShowAnnotations={setShowAnnotations}
+            isAudioPlaying={isAudioPlaying}
+            setIsAudioPlaying={setIsAudioPlaying}
+            theme={theme}
+            setTheme={setTheme}
+            showSettings={showSettings}
+            setShowSettings={setShowSettings}
+            layoutMode={layoutMode}
+            glossary={activeData.glossary}
+          />
+        )}
       </div>
 
       {/* ── Interactive Helper Onboarding Tooltip ─────────────── */}

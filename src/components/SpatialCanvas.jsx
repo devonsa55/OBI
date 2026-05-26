@@ -30,18 +30,11 @@ export default function SpatialCanvas({
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const [sheetOffset, setSheetOffset] = useState({ x: 0, y: 0 });
-  const [targetRatio, setTargetRatio] = useState(2752 / 1536); // Default to standard 43:24 (approx 1.792)
+  const [targetRatio, setTargetRatio] = useState(4 / 3); // Strict 4:3 aspect ratio
 
-  // Dynamically measure the aspect ratio of the loaded plate image to support any generation standard without cropping
+  // Aspect ratio is strictly locked to 4:3 by layout guidelines
   useEffect(() => {
-    if (!data?.level0?.plateImage) return;
-    const img = new Image();
-    img.src = data.level0.plateImage;
-    img.onload = () => {
-      if (img.width && img.height) {
-        setTargetRatio(img.width / img.height);
-      }
-    };
+    setTargetRatio(4 / 3);
   }, [data?.level0?.plateImage]);
 
   // Track active zoom direction (down vs up) for seamless 3D spatial alignment

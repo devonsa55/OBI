@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Info, BookOpen, MessageSquare, Send, Sparkles, ChevronRight, ChevronLeft, Activity, Thermometer, Wind, Droplet, Compass, Sliders, Eye, EyeOff, Tag, Volume2, VolumeX, X } from 'lucide-react';
 import { useCamera } from '../context/CameraContext';
+import { highlightGlossaryTerms } from './GlossaryTerm';
 import obData from '../data/coastalData.json';
 import mangroveData from '../data/mangroveData.json';
 
@@ -89,7 +90,8 @@ export default function SidebarDrawer({
   setTheme,
   showSettings,
   setShowSettings,
-  layoutMode = 'split-desk'
+  layoutMode = 'split-desk',
+  glossary = []
 }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [chatHistory, setChatHistory] = useState([]);
@@ -369,12 +371,12 @@ export default function SidebarDrawer({
                   <div className="bg-coastal-teal/15 border border-coastal-teal/30 p-5 rounded-xl flex items-start space-x-4 shadow shrink-0">
                     <Info className="w-6 h-6 text-coastal-sage shrink-0 mt-0.5" />
                     <p className="text-coastal-light font-sans font-semibold leading-relaxed text-[16px]">
-                      {node.drawerContent.tldr}
+                      {highlightGlossaryTerms(node.drawerContent.tldr, glossary)}
                     </p>
                   </div>
 
                   <div className="text-coastal-light/95 leading-relaxed font-sans font-light text-[18px] space-y-4">
-                    <p>{node.drawerContent.body}</p>
+                    <p>{highlightGlossaryTerms(node.drawerContent.body, glossary)}</p>
                   </div>
 
                   <div className="pt-4 border-t border-coastal-teal/20 shrink-0">
@@ -383,7 +385,7 @@ export default function SidebarDrawer({
                       <h3 className="font-extrabold tracking-wider font-sans uppercase text-[13.5px]">Did you know?</h3>
                     </div>
                     <p className="text-coastal-light/95 italic font-sans leading-relaxed text-[16px] bg-coastal-forest/20 p-4.5 rounded-xl border border-coastal-forest/30 shadow-sm">
-                      "{node.drawerContent.didYouKnow}"
+                      "{highlightGlossaryTerms(node.drawerContent.didYouKnow, glossary)}"
                     </p>
                   </div>
                 </motion.div>
@@ -544,7 +546,7 @@ export default function SidebarDrawer({
 
               {/* Major Description Panel - BUMPED SIZING */}
               <div className="border border-coastal-teal/20 bg-coastal-dark/10 p-5 rounded-xl shadow-md shrink-0 text-coastal-light/95 leading-relaxed font-sans font-medium text-[18px]">
-                {node.description || "Explore the complex relationships, dynamic sediment currents, and highly specialized organisms adapted to this unique ecosystem zone."}
+                {highlightGlossaryTerms(node.description || "Explore the complex relationships, dynamic sediment currents, and highly specialized organisms adapted to this unique ecosystem zone.", glossary)}
               </div>
 
               {/* Clickable Detail Studies Catalog - BUMPED SIZING */}
@@ -766,20 +768,20 @@ export default function SidebarDrawer({
                   <div className="border-l-3 border-coastal-sage pl-5 py-0.5 flex flex-col gap-1.5 mb-6">
                     <span className="text-[12.5px] uppercase tracking-widest text-coastal-sage font-black leading-none">Core Hypothesis</span>
                     <p className="text-coastal-light font-semibold leading-relaxed text-[17px]">
-                      {node.drawerContent.tldr}
+                      {highlightGlossaryTerms(node.drawerContent.tldr, glossary)}
                     </p>
                   </div>
 
                   {/* Body description - sitting flatly on the background */}
                   <p className="text-coastal-light/90 leading-relaxed font-light text-[17.5px] mb-6 pr-4">
-                    {node.drawerContent.body}
+                    {highlightGlossaryTerms(node.drawerContent.body, glossary)}
                   </p>
                   
                   {/* Factoid - styled cleanly without full box borders */}
                   <div className="flex items-center gap-3 text-coastal-sage/90 text-[14.5px] pr-4 select-none">
                     <Sparkles className="w-5 h-5 text-coastal-sage shrink-0 animate-pulse" />
                     <p className="italic leading-relaxed">
-                      <strong>Did you know?</strong> "{node.drawerContent.didYouKnow}"
+                      <strong>Did you know?</strong> "{highlightGlossaryTerms(node.drawerContent.didYouKnow, glossary)}"
                     </p>
                   </div>
                 </motion.div>
@@ -973,7 +975,7 @@ export default function SidebarDrawer({
                   className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full items-start font-sans pb-4"
                 >
                   <div className="lg:col-span-2 text-coastal-light/95 leading-relaxed font-light text-[17.5px] max-w-[850px] pr-4">
-                    {node.description || "Explore the complex relationships, dynamic sediment currents, and highly specialized organisms adapted to this unique ecosystem zone."}
+                    {highlightGlossaryTerms(node.description || "Explore the complex relationships, dynamic sediment currents, and highly specialized organisms adapted to this unique ecosystem zone.", glossary)}
                   </div>
 
                   <div className="lg:col-span-1 border-l-2 border-coastal-sage pl-5 py-0.5 flex flex-col gap-1.5 select-none pr-4">
