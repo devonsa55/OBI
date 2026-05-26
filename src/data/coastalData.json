@@ -1,6 +1,14 @@
 {
   "ecosystemId": "ocean-beach-sf",
   "name": "Ocean Beach, San Francisco",
+  "glossary": [
+    { "term": "bathymetry", "definition": "The measurement of depth of water in oceans, seas, or lakes." },
+    { "term": "upwelling", "definition": "A process in which deep, cold water rises toward the surface." },
+    { "term": "pneumatocyst", "definition": "A gas-filled float or bladder on a kelp plant that keeps it buoyant." },
+    { "term": "foliar water uptake", "definition": "The absorption of water directly through a plant's leaves, such as trapping condensation from coastal fog." },
+    { "term": "trichome", "definition": "A small hair or outgrowth on the epidermis of a plant, often specialized to trap moisture or reflect heat." },
+    { "term": "stipe", "definition": "A stalk or stem-like structure, such as the whip-like stem of bull kelp that supports the blades." }
+  ],
   "level0": {
     "title": "Ocean Beach Ecosystem",
     "plateImage": "assets/plate-level0-map.png",
@@ -320,9 +328,9 @@
         ]
       },
       {
-        "id": "sys-stewardship",
-        "title": "Human Stewardship",
-        "description": "How we manage, restore, and protect these delicate systems.",
+        "id": "sys-coastal-engineering",
+        "title": "Coastal Engineering",
+        "description": "Observing how humans have structurally engineered the coastline.",
         "targetZoomScale": 3,
         "coordinates": {
           "x": 62.85,
