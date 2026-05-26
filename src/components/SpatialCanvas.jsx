@@ -783,20 +783,28 @@ function HotspotBeacon({ node, level, onClick, showBeacons, direction, isDevMode
         </div>
       </div>
 
-      <AnimatePresence>
-        {isHovered && (
-          <motion.div
-            initial={{ opacity: 0, y: 8, scale: 0.9, x: '-50%' }}
-            animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
-            exit={{ opacity: 0, y: 6, scale: 0.9, x: '-50%' }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="absolute bottom-full left-1/2 mb-3.5 px-4.5 py-2 bg-coastal-dark/95 backdrop-blur-md text-coastal-light text-[14px] font-bold rounded-full whitespace-nowrap border border-coastal-sage/60 shadow-2xl font-sans flex items-center gap-1.5 pointer-events-none z-50"
-          >
-            {node.title}
-            <span className="text-[10px] text-coastal-sage">→</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, y: 8, scale: 0.9, x: '-50%' }}
+        animate={{ 
+          opacity: 0.95, 
+          y: isHovered ? -3 : 0, 
+          scale: isHovered ? 1.05 : 1, 
+          x: '-50%' 
+        }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        className={`absolute bottom-full left-1/2 mb-3.5 px-4.5 py-1.5 bg-coastal-dark/90 backdrop-blur-md text-[13px] font-bold rounded-full whitespace-nowrap border transition-all duration-300 shadow-2xl font-sans flex items-center gap-1.5 pointer-events-none z-50 ${
+          isHovered 
+            ? 'border-coastal-light text-white bg-coastal-dark/95 shadow-coastal-sage/20' 
+            : 'border-coastal-sage/40 text-coastal-light/90'
+        }`}
+      >
+        {node.title}
+        <span className={`text-[10px] transition-all duration-300 ${
+          isHovered ? 'text-white translate-x-0.5' : 'text-coastal-sage'
+        }`}>
+          →
+        </span>
+      </motion.div>
     </motion.div>
   );
 }
