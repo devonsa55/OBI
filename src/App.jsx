@@ -426,7 +426,7 @@ function AppContent() {
           {/* ── Spatial Canvas Sheet Container ── */}
           <div className={`w-full relative overflow-hidden ${
             isTheater && currentLevel > 0
-              ? 'h-[50vh] min-h-[535px] max-h-[580px] border-b border-coastal-teal/20' 
+              ? 'aspect-[4/3] max-h-[52vh] min-h-[320px] md:max-h-[56vh] lg:max-h-[58vh] border-b border-coastal-teal/20' 
               : 'flex-grow'
           }`}>
             <SpatialCanvas
